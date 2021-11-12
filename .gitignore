@@ -386,3 +386,7 @@ FodyWeavers.xsd
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# Object Subdirectories
+CryptoTrading.BackGround.LiveData.Server/[Oo]bj/
+CryptoTrading.Kucoin.DesktopInterface/[Oo]bj/
