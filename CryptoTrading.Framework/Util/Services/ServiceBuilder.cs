@@ -5,8 +5,7 @@ namespace CryptoTrading.Framework.Util.Services
 {
     internal static class ServiceBuilder
     {
-        public static IHost BuildConfiguredService<T>(string[] args)
-            where T : class, IHostedService
+        public static IHost BuildConfiguredService<T>(string[] args) where T : class, IHostedService
         {
             var hostbuilder = Host.CreateDefaultBuilder(args);
             hostbuilder = hostbuilder.ConfigureServices(ConfigureService<T>);
