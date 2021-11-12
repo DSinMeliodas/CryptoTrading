@@ -390,3 +390,4 @@ FodyWeavers.xsd
 # Object Subdirectories
 CryptoTrading.BackGround.LiveData.Server/[Oo]bj/
 CryptoTrading.Kucoin.DesktopInterface/[Oo]bj/
+.vs/CryptoTrading/v16/.suo
