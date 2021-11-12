@@ -2,27 +2,25 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoTrading.BackGround.LiveData.Server
+namespace CryptoTrading.BackGround.LiveData.Server.Core
 {
-    public class Worker : BackgroundService
+    public class LiveDataServer : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
+        private readonly ILogger<LiveDataServer> m_Logger;
 
-        public Worker(ILogger<Worker> logger)
+        public LiveDataServer(ILogger<LiveDataServer> logger)
         {
-            _logger = logger;
+            m_Logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                m_Logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 await Task.Delay(1000, stoppingToken);
             }
         }
