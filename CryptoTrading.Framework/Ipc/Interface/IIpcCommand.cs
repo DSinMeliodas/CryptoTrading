@@ -4,6 +4,10 @@ namespace CryptoTrading.Framework.Ipc.Interface
 {
     public interface IIpcCommand : ISerializable
     {
-        int Id { get; }
+        string Id { get; }
+
+        long ResponseTag { get; }
+
+        IIpcCommandResult Result { get; set; }
     }
 }
