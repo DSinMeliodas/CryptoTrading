@@ -1,6 +1,8 @@
-﻿using System;
+﻿using CryptoTrading.Framework.Ipc.Interface.Data;
 
-namespace CryptoTrading.Framework.Ipc.Interface
+using System;
+
+namespace CryptoTrading.Framework.Ipc.Interface.Participants
 {
     internal delegate void IpcCommandReceived(IIpcCommand command);
 

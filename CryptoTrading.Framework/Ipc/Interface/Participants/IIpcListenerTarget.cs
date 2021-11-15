@@ -1,4 +1,4 @@
-﻿namespace CryptoTrading.Framework.Ipc.Interface
+﻿namespace CryptoTrading.Framework.Ipc.Interface.Participants
 {
     public interface IIpcListenerTarget
     {

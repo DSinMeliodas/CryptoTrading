@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace CryptoTrading.Framework.Ipc.Interface
+namespace CryptoTrading.Framework.Ipc.Interface.Data
 {
     public interface IIpcCommand : ISerializable
     {
