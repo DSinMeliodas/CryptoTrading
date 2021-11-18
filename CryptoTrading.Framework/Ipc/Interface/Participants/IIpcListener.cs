@@ -1,4 +1,4 @@
-﻿using CryptoTrading.Framework.Ipc.Interface.Data;
+﻿using CryptoTrading.Framework.Ipc.Interface.DataTransfer;
 
 using System;
 
