@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 
 namespace CryptoTrading.Framework.Ipc.Interface.DataTransfer
 {
@@ -9,5 +10,9 @@ namespace CryptoTrading.Framework.Ipc.Interface.DataTransfer
         int Code { get; }
 
         object ResultData { get; }
+
+        Type ResultType { get; }
+
+        T CastResultData<T>();
     }
 }
