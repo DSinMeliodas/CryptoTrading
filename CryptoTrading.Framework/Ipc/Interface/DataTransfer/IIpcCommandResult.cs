@@ -7,7 +7,7 @@ namespace CryptoTrading.Framework.Ipc.Interface.DataTransfer
     {
         bool Error { get; }
 
-        int Code { get; }
+        int TypeCode { get; }
 
         object ResultData { get; }
 
