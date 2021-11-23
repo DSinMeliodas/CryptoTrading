@@ -9,7 +9,7 @@ namespace CryptoTrading.Framework.Ipc.Base.Clients
     internal abstract class AbstractBaseIpcClient<TListenerTarget> : IIpcClient<TListenerTarget>
         where TListenerTarget : IIpcListenerTarget
     {
-        public event IpcCommandReceived OnCommandReceived;
+        public event IpcCommandReceived<TListenerTarget> OnCommandReceived;
 
         private bool m_Disposed;
         private TimeSpan m_UpdateTickRate;
@@ -20,7 +20,7 @@ namespace CryptoTrading.Framework.Ipc.Base.Clients
 
         protected TimeSpan UpdateTickRate
         {
-            get=>m_UpdateTickRate;
+            get => m_UpdateTickRate;
             set
             {
                 m_UpdateTickRate = value;
@@ -64,6 +64,6 @@ namespace CryptoTrading.Framework.Ipc.Base.Clients
         {
         }
 
-        protected void ReceiveCommand(IIpcCommand command) => OnCommandReceived?.Invoke(command);
+        protected void ReceiveCommand(IIpcCommand command) => OnCommandReceived?.Invoke(this, command);
     }
 }
