@@ -22,25 +22,27 @@ namespace CryptoTrading.Framework.Ipc.Implementation.Clients
         {
         }
 
-        public override bool StartListening()
-        {
-            if (!base.StartListening())
-            {
-                return false;
-            }
-            NamedStream.WaitForConnectionAsync(CancellationToken).Wait();
-            return true;
-        }
-
         public override IIpcCommandResult Send(IIpcCommand command)
         {
             if (!NamedStream.IsConnected)
             {
-                NamedStream.WaitForConnectionAsync(CancellationToken).Wait();
+                NamedStream.WaitForConnectionAsync(RunningToken).Wait();
             }
             var rawCommand = Serializer.Serialize(command);
-            NamedStream.WriteAsync(rawCommand, CancellationToken).AsTask().Wait();
+            NamedStream.WriteAsync(rawCommand, RunningToken).AsTask().Wait();
             return AsyncIpcCommandResult.CreateLinkFor(command, this);
         }
+
+        protected override bool OnListeningStart() => NamedStream.WaitForConnectionAsync(ListeningToken).IsCompletedSuccessfully;
+
+        protected override bool OnListeningStop()
+        {
+            NamedStream.Disconnect();
+            return true;
+        }
+
+        protected override bool OnStart() => true;
+
+        protected override bool OnStop() => true;
     }
 }

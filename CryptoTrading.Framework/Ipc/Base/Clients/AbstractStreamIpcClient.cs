@@ -32,26 +32,6 @@ namespace CryptoTrading.Framework.Ipc.Base.Clients
             Stream = underlyingStream;
         }
 
-        public override bool StartListening()
-        {
-            if (!CancellationToken.IsCancellationRequested)
-            {
-                return false;
-            }
-            m_CancellationSource = new CancellationTokenSource();
-            return false;
-        }
-
-        public override bool StopListening()
-        {
-            if (!CancellationToken.IsCancellationRequested)
-            {
-                return false;
-            }
-            m_CancellationSource?.Cancel();
-            return true;
-        }
-
         protected sealed override void UpdateTick(object _)
         {
             var buffer = new byte[Deserializer.BufferSize];
