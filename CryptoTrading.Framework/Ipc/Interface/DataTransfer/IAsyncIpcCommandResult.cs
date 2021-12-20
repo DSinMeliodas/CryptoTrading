@@ -1,13 +1,12 @@
-﻿namespace CryptoTrading.Framework.Ipc.Interface.DataTransfer
+﻿namespace CryptoTrading.Framework.Ipc.Interface.DataTransfer;
+
+/// <summary>
+/// An asynchronous result.
+/// </summary>
+public interface IAsyncIpcCommandResult : IIpcCommandResult
 {
     /// <summary>
-    /// An asynchronous result.
+    /// Bool value indicating whether the result has been received.
     /// </summary>
-    public interface IAsyncIpcCommandResult : IIpcCommandResult
-    {
-        /// <summary>
-        /// Bool value indicating whether the result has been received.
-        /// </summary>
-        bool HasResult { get; }
-    }
+    bool HasResult { get; }
 }

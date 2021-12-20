@@ -1,17 +1,16 @@
-﻿namespace CryptoTrading.Framework.EventArgs
+﻿namespace CryptoTrading.Framework.EventArgs;
+
+internal sealed class SourceChangedArgs<TSource> : System.EventArgs
 {
-    internal sealed class SourceChangedArgs<TSource> : System.EventArgs
+    public TSource OldSource { get; }
+
+    public TSource NewSource { get; }
+
+    public SourceChangedArgs(
+        TSource oldSource,
+        TSource newSource)
     {
-        public TSource OldSource { get; }
-
-        public TSource NewSource { get; }
-
-        public SourceChangedArgs(
-            TSource oldSource,
-            TSource newSource)
-        {
-            OldSource = oldSource;
-            NewSource = newSource;
-        }
+        OldSource = oldSource;
+        NewSource = newSource;
     }
 }
