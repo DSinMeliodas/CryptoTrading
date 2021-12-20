@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <UserSecretsId>dotnet-CryptoTrading.BackGround.LiveData.Server-D8AF2DAE-3119-4D6B-A366-74AFFE7C8ACE</UserSecretsId>
   </PropertyGroup>
 

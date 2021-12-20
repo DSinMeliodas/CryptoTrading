@@ -7,4 +7,8 @@
     <StartupObject>CryptoTrading.Kucoin.DesktopInterface.App</StartupObject>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CryptoTrading.Framework\CryptoTrading.Framework.csproj" />
+  </ItemGroup>
+
 </Project>
