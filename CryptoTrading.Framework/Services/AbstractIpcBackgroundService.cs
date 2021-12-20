@@ -7,55 +7,54 @@ using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CryptoTrading.Framework.Services
+namespace CryptoTrading.Framework.Services;
+
+internal abstract class AbstractIpcBackgroundService<TListenerTarget> : BackgroundService where TListenerTarget : IIpcListenerTarget
 {
-    internal abstract class AbstractIpcBackgroundService<TListenerTarget> : BackgroundService where TListenerTarget : IIpcListenerTarget
+    private bool m_Disposed;
+
+    private readonly IIpcClient<TListenerTarget> m_IpcClient;
+
+    protected ILogger Logger { get; }
+
+    protected AbstractIpcBackgroundService(ILogger logger, IIpcClient<TListenerTarget> ipcClient)
     {
-        private bool m_Disposed;
+        m_IpcClient = ipcClient;
+        Logger = logger;
+        m_IpcClient.OnCommandReceived += ReceivedCommand;
+    }
 
-        private readonly IIpcClient<TListenerTarget> m_IpcClient;
+    public sealed override void Dispose()
+    {
+        base.Dispose();
+        CleanUp();
+        Dispose(!m_Disposed);
+        m_Disposed = true;
+    }
 
-        protected ILogger Logger { get; }
-
-        protected AbstractIpcBackgroundService(ILogger logger, IIpcClient<TListenerTarget> ipcClient)
+    protected sealed override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
         {
-            m_IpcClient = ipcClient;
-            Logger = logger;
-            m_IpcClient.OnCommandReceived += ReceivedCommand;
+            await DoLoopWork(stoppingToken);
         }
+    }
 
-        public sealed override void Dispose()
+    protected virtual void Dispose(bool disposing)
+    {
+    }
+
+    protected abstract Task DoLoopWork(CancellationToken stoppingToken);
+
+    protected abstract void ReceivedCommand(IIpcListener<TListenerTarget> sender, IIpcCommand command);
+
+    private void CleanUp()
+    {
+        if (m_IpcClient is null)
         {
-            base.Dispose();
-            CleanUp();
-            Dispose(!m_Disposed);
-            m_Disposed = true;
+            return;
         }
-
-        protected sealed override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                await DoLoopWork(stoppingToken);
-            }
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-        }
-
-        protected abstract Task DoLoopWork(CancellationToken stoppingToken);
-
-        protected abstract void ReceivedCommand(IIpcCommand command);
-
-        private void CleanUp()
-        {
-            if (m_IpcClient is null)
-            {
-                return;
-            }
-            m_IpcClient.Dispose();
-            m_IpcClient.OnCommandReceived -= ReceivedCommand;
-        }
+        m_IpcClient.Dispose();
+        m_IpcClient.OnCommandReceived -= ReceivedCommand;
     }
 }
