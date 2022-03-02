@@ -7,4 +7,21 @@
     <StartupObject>CryptoTrading.Kucoin.DesktopInterface.App</StartupObject>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-beta.101" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\AppResourceDictionary.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="View\ChartPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ViewModel\" />
+  </ItemGroup>
+
 </Project>
