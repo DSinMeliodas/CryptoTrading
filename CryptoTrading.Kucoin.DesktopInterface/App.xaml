@@ -4,6 +4,6 @@
              xmlns:local="clr-namespace:CryptoTrading.Kucoin.DesktopInterface"
              StartupUri="View/MainWindow.xaml">
     <Application.Resources>
-         
+         <ResourceDictionary Source="Resources/AppResourceDictionary.xaml"/>
     </Application.Resources>
 </Application>
