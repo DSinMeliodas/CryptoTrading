@@ -12,16 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Resources\AppResourceDictionary.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
     <None Update="View\ChartPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ViewModel\" />
   </ItemGroup>
 
 </Project>
