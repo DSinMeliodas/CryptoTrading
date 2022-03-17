@@ -14,13 +14,7 @@ internal class MainViewModel : BaseViewModel
 
     public RangeObservableCollection<Axis> XAxes { get; } = new ();
 
-
-    
     protected override void Dispose(bool disposing)
     {
     }
-
-    private RangeObservableCollection<> selectableExchanges;
-
-    public System.Collections.IEnumerable SelectableExchanges { get => selectableExchanges; set => SetProperty(ref selectableExchanges, value); }
 }

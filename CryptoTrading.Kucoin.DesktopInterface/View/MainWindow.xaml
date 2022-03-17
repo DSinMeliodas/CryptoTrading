@@ -3,10 +3,36 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:CryptoTrading.Kucoin.DesktopInterface"
+        xmlns:wpf="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+        xmlns:viewModel="clr-namespace:CryptoTrading.Kucoin.DesktopInterface.ViewModel"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Kucoin Desktop Interface"
+        MinHeight="720"
+        MinWidth="1280">
+    <Window.DataContext>
+        <viewModel:MainViewModel/>
+    </Window.DataContext>
     <Grid>
-
+        <Grid.RowDefinitions>
+            <RowDefinition Name="HeadLine" MinHeight="100" MaxHeight="100"/>
+            <RowDefinition Name="ChartArea"/>
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Name="DropDown" Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox ItemsSource="{Binding SelectableExchanges}">
+                <ComboBox.DataContext>
+                    <viewModel:ExchangeSelectionViewModel/>
+                </ComboBox.DataContext>
+            </ComboBox>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Name="Chart"/>
+                <ColumnDefinition Name="ChartOptions" MinWidth="100" MaxWidth="320"/>
+            </Grid.ColumnDefinitions>
+            <wpf:CartesianChart Series="{Binding Series}" XAxes="{Binding XAxes}"/>
+        </Grid>
     </Grid>
 </Window>
