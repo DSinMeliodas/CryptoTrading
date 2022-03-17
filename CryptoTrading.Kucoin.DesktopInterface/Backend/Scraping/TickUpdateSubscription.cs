@@ -2,15 +2,15 @@
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
 
-public class TickUpdateSubscription
+public class TickUpdateSubscription : IEquatable<TickUpdateSubscription>
 {
     private readonly Type m_Type;
 
-    public long Id { get; init; }
+    public Guid Id { get; init; }
 
-    public string Target { get; init; }
+    public ITickerTarget Target { get; init; }
 
-    public TickUpdateSubscription(long id, string target, Type type)
+    public TickUpdateSubscription(Guid id, ITickerTarget target, Type type)
     {
         Id = id;
         Target = target;
@@ -27,5 +27,22 @@ public class TickUpdateSubscription
 
         castedValue = default;
         return false;
+    }
+
+
+    public override int GetHashCode() => Id.GetHashCode();
+
+    public bool Equals(TickUpdateSubscription other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return Id.Equals(other.Id);
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        return Equals(obj as TickUpdateSubscription);
     }
 }
