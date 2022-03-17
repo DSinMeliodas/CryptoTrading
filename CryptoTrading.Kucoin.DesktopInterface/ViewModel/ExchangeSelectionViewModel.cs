@@ -11,7 +11,7 @@ namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
 internal sealed class ExchangeSelectionViewModel : BaseViewModel
 {
-    private readonly ExchangeSelector Selector = ExchangeSelector.InplaceInstance();
+    private readonly ExchangeSelector Selector = ExchangeSelector.InPlaceInstance();
 
     public ObservableCollection<string> Exchanges => Selector.Exchanges;
 
