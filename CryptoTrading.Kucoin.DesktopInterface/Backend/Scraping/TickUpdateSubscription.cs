@@ -1,4 +1,5 @@
 ﻿using System;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
 

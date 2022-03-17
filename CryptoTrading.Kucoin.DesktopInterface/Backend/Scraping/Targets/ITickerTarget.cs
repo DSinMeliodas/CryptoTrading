@@ -2,7 +2,7 @@
 using CryptoExchange.Net.Objects;
 using Kucoin.Net.Clients;
 
-namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
+namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 public interface ITickerTarget
 {

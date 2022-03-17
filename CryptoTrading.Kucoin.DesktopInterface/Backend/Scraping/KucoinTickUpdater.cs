@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CryptoExchange.Net.Objects;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Querying;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
 
