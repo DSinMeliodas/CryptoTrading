@@ -19,4 +19,6 @@ public interface ITickUpdater : IDisposable
     bool Stop();
 
     TickUpdateSubscription Subscribe([NotNull]ITickerTarget target, [NotNull]Type targetType);
+
+    void Unsubscribe([NotNull] TickUpdateSubscription subscription);
 }
