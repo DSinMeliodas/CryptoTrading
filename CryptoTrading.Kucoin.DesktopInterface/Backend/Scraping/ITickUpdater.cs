@@ -8,7 +8,6 @@ public interface ITickUpdater : IDisposable
 {
     public event OnTickUpdate OnTickUpdate;
 
-
     TimeSpan UpdateInterval { get; set; }
 
     void Start();
