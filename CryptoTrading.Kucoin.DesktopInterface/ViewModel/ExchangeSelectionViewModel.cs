@@ -1,19 +1,14 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Domain;
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
 internal sealed class ExchangeSelectionViewModel : BaseViewModel
 {
-    private readonly ExchangeSelector Selector = ExchangeSelector.InPlaceInstance();
+    private readonly ExchangeSelector m_Selector = ExchangeSelector.InPlaceInstance();
 
-    public ObservableCollection<string> Exchanges => Selector.Exchanges;
+    public ObservableCollection<string> Exchanges => m_Selector.Exchanges;
 
     protected override void Dispose(bool disposing)
     {
