@@ -4,7 +4,7 @@ using System;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
 
-public interface ITickUpdater
+public interface ITickUpdater : IDisposable
 {
     public event OnTickUpdate OnTickUpdate;
 
