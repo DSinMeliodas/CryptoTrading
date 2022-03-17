@@ -1,28 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Querying
+namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Querying;
+
+internal class TaskQuery<T>
 {
-    public class TaskQuery<T>
+    private readonly IEnumerable<Task<T>> m_Tasks;
+
+    private TaskQuery(IEnumerable<Task<T>> tasks)
     {
-        private readonly IEnumerable<Task<T>> m_Tasks;
+        m_Tasks = tasks;
+    }
 
-        private TaskQuery(IEnumerable<Task<T>> tasks)
-        {
-            m_Tasks = tasks;
-        }
+    public TaskContinueQuery<T> ContinueWith()
+    {
+        return TaskContinueQuery<T>.ForAll(m_Tasks);
+    }
 
-        public void OnCompletedAsync(Action<Task<T>> onCompletion)
-        {
-            var completingTasks = m_Tasks.Select(t => t.ContinueWith(onCompletion)).ToArray();
-            Task.WaitAll(completingTasks);
-        }
-
-        public static TaskQuery<T> ForAll(IEnumerable<Task<T>> tasks)
-        {
-            return new TaskQuery<T>(tasks);
-        }
+    public static TaskQuery<T> ForAll(IEnumerable<Task<T>> tasks)
+    {
+        return new TaskQuery<T>(tasks);
     }
 }
