@@ -17,7 +17,7 @@ internal sealed class KucoinTickUpdater : ITickUpdater
     public event Action<CallResult<object>> OnCallError;
     public event OnTickUpdate OnTickUpdate;
 
-    private readonly ConcurrentBag<TickUpdateSubscription> m_Subscriptions = new();
+    private readonly ConcurrentDictionary<TickUpdateSubscription, bool> m_Subscriptions = new();
     private readonly KucoinClient m_Client = new ();
     private readonly Timer m_Ticker;
 
@@ -55,16 +55,24 @@ internal sealed class KucoinTickUpdater : ITickUpdater
 
     public TickUpdateSubscription Subscribe(ITickerTarget target, Type targetType)
     {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(targetType);
         var id = Guid.NewGuid();
         var subscription = new TickUpdateSubscription(id, target, targetType);
-        m_Subscriptions.Add(subscription);
+        _ = m_Subscriptions.TryAdd(subscription, false);
         return subscription;
 
     }
 
+    public void Unsubscribe(TickUpdateSubscription subscription)
+    {
+        ArgumentNullException.ThrowIfNull(subscription);
+        _ = m_Subscriptions.TryRemove(subscription, out _);
+    }
+
     private async void OnTick(object _)
     {
-        var resultsBySubscription = SubscriptionQuery.All(m_Subscriptions)
+        var resultsBySubscription = SubscriptionQuery.All(m_Subscriptions.Keys)
                                 .UpdateOn(m_Client)
                                 .RemapInnerValueToOuterValue();
         var actualResultsBySubscription = resultsBySubscription.AsParallel().Select(ToResultOrErrorEventCall).Where(r=>r.Item3);
