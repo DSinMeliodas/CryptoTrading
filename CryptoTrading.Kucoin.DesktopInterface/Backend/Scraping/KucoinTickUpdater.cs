@@ -3,14 +3,18 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using CryptoExchange.Net.Objects;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Querying;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
 
 internal sealed class KucoinTickUpdater : ITickUpdater
 {
-    public event Action OnRequestTimeout;
-
+    public event Action<Task<CallResult<object>>> OnAsyncCallError; 
+    public event Action<CallResult<object>> OnCallError;
     public event OnTickUpdate OnTickUpdate;
 
     private readonly ConcurrentBag<TickUpdateSubscription> m_Subscriptions = new();
@@ -21,7 +25,7 @@ internal sealed class KucoinTickUpdater : ITickUpdater
 
     public TimeSpan UpdateInterval
     {
-        get=>m_UpdateInterval;
+        get => m_UpdateInterval;
         set
         {
             var oldValue = m_UpdateInterval;
@@ -49,7 +53,7 @@ internal sealed class KucoinTickUpdater : ITickUpdater
 
     public bool Stop() => m_Ticker.Change(Timeout.InfiniteTimeSpan, UpdateInterval);
 
-    public TickUpdateSubscription Subscribe(string target, Type targetType)
+    public TickUpdateSubscription Subscribe(ITickerTarget target, Type targetType)
     {
         var id = Guid.NewGuid();
         var subscription = new TickUpdateSubscription(id, target, targetType);
@@ -58,11 +62,30 @@ internal sealed class KucoinTickUpdater : ITickUpdater
 
     }
 
-    private void OnTick(object _)
+    private async void OnTick(object _)
     {
-        foreach (var subscription in m_Subscriptions)
+        var resultsBySubscription = SubscriptionQuery.All(m_Subscriptions)
+                                .UpdateOn(m_Client)
+                                .RemapInnerValueToOuterValue();
+        var actualResultsBySubscription = resultsBySubscription.AsParallel().Select(ToResultOrErrorEventCall).Where(r=>r.Item3);
+    }
+
+    private (TickUpdateSubscription, object, bool) ToResultOrErrorEventCall(KeyValuePair<TickUpdateSubscription, Task<CallResult<object>>> kvp)
+    {
+        var task = kvp.Value;
+        task.Wait();
+        if (!task.IsCompletedSuccessfully)
         {
-            subscription.Target
+            OnAsyncCallError?.Invoke(kvp.Value);
+            return (kvp.Key, null, false);
         }
+        var call = task.Result;
+        if (call.Success)
+        {
+            return (kvp.Key, call.Data, true);
+        }
+        OnCallError?.Invoke(call);
+        return (kvp.Key, call.Data, false);
+
     }
 }
