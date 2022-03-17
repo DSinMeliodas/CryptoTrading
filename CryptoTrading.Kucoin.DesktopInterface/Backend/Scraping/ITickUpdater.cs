@@ -10,9 +10,9 @@ public interface ITickUpdater : IDisposable
 
     TimeSpan UpdateInterval { get; set; }
 
-    void Start();
+    bool Start();
 
-    void Stop();
+    bool Stop();
 
     TickUpdateSubscription Subscribe([NotNull]string target, [NotNull]Type targetType);
 }
