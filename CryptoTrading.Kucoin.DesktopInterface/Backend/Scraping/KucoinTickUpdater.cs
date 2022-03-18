@@ -70,7 +70,7 @@ internal sealed class KucoinTickUpdater : ITickUpdater
         _ = m_Subscriptions.TryRemove(subscription, out _);
     }
 
-    private async void OnTick(object _)
+    private void OnTick(object _)
     {
         var resultsBySubscription = SubscriptionQuery.All(m_Subscriptions.Keys)
                                 .UpdateOn(m_Client)
