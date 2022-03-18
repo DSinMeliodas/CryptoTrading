@@ -14,12 +14,12 @@ namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
 
 internal sealed class KucoinTickUpdater : ITickUpdater
 {
-    public event Action<Task<CallResult<object>>> OnAsyncCallError; 
+    public event Action<Task<CallResult<object>>> OnAsyncCallError;
     public event Action<CallResult<object>> OnCallError;
     public event OnTickUpdate OnTickUpdate;
 
     private readonly ConcurrentDictionary<TickUpdateSubscription, bool> m_Subscriptions = new();
-    private readonly KucoinClient m_Client = new ();
+    private readonly KucoinClient m_Client = new();
     private readonly Timer m_Ticker;
 
     private TimeSpan m_UpdateInterval;
@@ -75,7 +75,11 @@ internal sealed class KucoinTickUpdater : ITickUpdater
         var resultsBySubscription = SubscriptionQuery.All(m_Subscriptions.Keys)
                                 .UpdateOn(m_Client)
                                 .RemapInnerValueToOuterValue();
-        var actualResultsBySubscription = resultsBySubscription.AsParallel().Select(ToResultOrErrorEventCall).Where(r=>r.Item3);
+        var actualResultsBySubscription = resultsBySubscription.AsParallel()
+                                            .Select(ToResultOrErrorEventCall)
+                                            .Where(r => r.Item3);
+        var resultsMapped = actualResultsBySubscription.ToDictionary(tuple => tuple.Item1, tuple => tuple.Item2);
+        OnTickUpdate?.Invoke(this, new(resultsMapped));
     }
 
     private (TickUpdateSubscription, object, bool) ToResultOrErrorEventCall(KeyValuePair<TickUpdateSubscription, Task<CallResult<object>>> kvp)
