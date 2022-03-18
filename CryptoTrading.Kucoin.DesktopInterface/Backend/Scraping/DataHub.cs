@@ -89,9 +89,9 @@ internal class DataHub : ITickUpdater
         return m_CurrentUpdater.Stop();
     }
 
-    public TickUpdateSubscription Subscribe(ITickerTarget target, Type targetType)
+    public TickUpdateSubscription Subscribe(ITickerTarget target)
     {
-        return m_CurrentUpdater.Subscribe(target, targetType);
+        return m_CurrentUpdater.Subscribe(target);
     }
 
     public void Unsubscribe(TickUpdateSubscription subscription)

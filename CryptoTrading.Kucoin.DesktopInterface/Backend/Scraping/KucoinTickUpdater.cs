@@ -54,12 +54,11 @@ internal sealed class KucoinTickUpdater : ITickUpdater
 
     public bool Stop() => m_Ticker.Change(Timeout.InfiniteTimeSpan, UpdateInterval);
 
-    public TickUpdateSubscription Subscribe(ITickerTarget target, Type targetType)
+    public TickUpdateSubscription Subscribe(ITickerTarget target)
     {
         ArgumentNullException.ThrowIfNull(target);
-        ArgumentNullException.ThrowIfNull(targetType);
         var id = Guid.NewGuid();
-        var subscription = new TickUpdateSubscription(id, target, targetType);
+        var subscription = new TickUpdateSubscription(id, target, target.ResultType);
         _ = m_Subscriptions.TryAdd(subscription, false);
         return subscription;
 
