@@ -1,7 +1,8 @@
-﻿using System;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Annotations;
+
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using CryptoTrading.Kucoin.DesktopInterface.Annotations;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 

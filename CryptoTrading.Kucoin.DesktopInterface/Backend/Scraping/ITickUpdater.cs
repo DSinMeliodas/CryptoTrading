@@ -1,8 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
-using CryptoExchange.Net.Objects;
+﻿using CryptoExchange.Net.Objects;
+
 using CryptoTrading.Kucoin.DesktopInterface.Annotations;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
+
+using System;
+using System.Threading.Tasks;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
 
