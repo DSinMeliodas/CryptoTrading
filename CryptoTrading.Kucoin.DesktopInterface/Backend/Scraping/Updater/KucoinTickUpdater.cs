@@ -1,4 +1,10 @@
-﻿using Kucoin.Net.Clients;
+﻿using CryptoExchange.Net.Objects;
+
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Querying;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
+
+using Kucoin.Net.Clients;
 
 using System;
 using System.Collections.Concurrent;
@@ -6,11 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Objects;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Querying;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
-namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
+namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
 internal sealed class KucoinTickUpdater : ITickUpdater
 {
@@ -54,12 +57,19 @@ internal sealed class KucoinTickUpdater : ITickUpdater
 
     public bool Stop() => m_Ticker.Change(Timeout.InfiniteTimeSpan, UpdateInterval);
 
-    public TickUpdateSubscription Subscribe(ITickerTarget target)
+    public TickUpdateSubscription Subscribe(ITickerTarget target, ISubscriptionCallBack callBack)
     {
         ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(callBack);
         var id = Guid.NewGuid();
-        var subscription = new TickUpdateSubscription(id, target, target.ResultType);
-        _ = m_Subscriptions.TryAdd(subscription, false);
+        var subscription = new TickUpdateSubscription(id, target, callBack, target.ResultType);
+        if (!m_Subscriptions.TryAdd(subscription, false))
+        {
+            throw new ArgumentException("target already subscribed");
+        }
+        OnAsyncCallError += callBack.OnAsyncCallError;
+        OnCallError += callBack.OnCallError;
+        OnTickUpdate += callBack.OnTickUpdate;
         return subscription;
 
     }
@@ -67,7 +77,13 @@ internal sealed class KucoinTickUpdater : ITickUpdater
     public void Unsubscribe(TickUpdateSubscription subscription)
     {
         ArgumentNullException.ThrowIfNull(subscription);
-        _ = m_Subscriptions.TryRemove(subscription, out _);
+        if(!m_Subscriptions.TryRemove(subscription, out _))
+        {
+            return;
+        }
+        OnAsyncCallError -= subscription.CallBack.OnAsyncCallError;
+        OnCallError -= subscription.CallBack.OnCallError;
+        OnTickUpdate -= subscription.CallBack.OnTickUpdate;
     }
 
     private void OnTick(object _)

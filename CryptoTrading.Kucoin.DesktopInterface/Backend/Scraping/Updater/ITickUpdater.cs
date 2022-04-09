@@ -1,12 +1,12 @@
 ﻿using CryptoExchange.Net.Objects;
 
-using CryptoTrading.Kucoin.DesktopInterface.Annotations;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 using System;
 using System.Threading.Tasks;
 
-namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
+namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
 public interface ITickUpdater : IDisposable
 {
@@ -20,7 +20,7 @@ public interface ITickUpdater : IDisposable
 
     bool Stop();
 
-    TickUpdateSubscription Subscribe([NotNull]ITickerTarget target);
+    TickUpdateSubscription Subscribe(ITickerTarget target, ISubscriptionCallBack subscriptionCallBack);
 
-    void Unsubscribe([NotNull] TickUpdateSubscription subscription);
+    void Unsubscribe(TickUpdateSubscription subscription);
 }

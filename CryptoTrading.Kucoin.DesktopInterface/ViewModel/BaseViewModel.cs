@@ -1,6 +1,4 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Annotations;
-
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -15,8 +13,7 @@ internal abstract class BaseViewModel : INotifyPropertyChanged, IDisposable
         Dispose(true);
         GC.SuppressFinalize(this);
     }
-
-    [NotifyPropertyChangedInvocator]
+    
     protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

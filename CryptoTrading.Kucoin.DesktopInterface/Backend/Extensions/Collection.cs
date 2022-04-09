@@ -1,5 +1,4 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Annotations;
-
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Extensions;
 internal static class Collection
 {
     public static void AddDifferenceToCollection<T>(
-        [NotNull] this ICollection<T> collection,
+        this ICollection<T> collection,
         ICollection<T> totalSet,
         ICollection<T> excluded)
     {

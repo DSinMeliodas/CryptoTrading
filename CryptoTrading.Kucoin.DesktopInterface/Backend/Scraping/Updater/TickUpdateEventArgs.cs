@@ -1,7 +1,9 @@
-﻿using System;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
+
+using System;
 using System.Collections.Generic;
 
-namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
+namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
 public delegate void OnTickUpdate(ITickUpdater sender, TickUpdateEventArgs args);
 

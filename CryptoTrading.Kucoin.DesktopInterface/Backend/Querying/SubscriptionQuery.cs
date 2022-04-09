@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using CryptoExchange.Net.Objects;
+
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
+
+using Kucoin.Net.Clients;
+
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Objects;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
-using Kucoin.Net.Clients;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Querying;
 
