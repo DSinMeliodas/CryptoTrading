@@ -1,45 +1,44 @@
-﻿using System;
+﻿using CryptoExchange.Net.Objects;
+
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
+
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Objects;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
 
-internal class DataHub : ITickUpdater
+
+
+internal sealed class DataHub
 {
     public const string InPlaceInstanceId = "Inplace";
 
-    private static DataHub Instance => s_HubInstance ??= new DataHub();
+    public static DataHub Instance => s_HubInstance ??= new DataHub();
     private static DataHub s_HubInstance;
 
-    public event Action<Task<CallResult<object>>> OnAsyncCallError
-    {
-        add => m_CurrentUpdater.OnAsyncCallError += value;
-        remove => m_CurrentUpdater.OnAsyncCallError -= value;
-    }
+    public event Action<string, Task<CallResult<object>>> OnAsyncCallError;
 
-    public event Action<CallResult<object>> OnCallError
-    {
-        add => m_CurrentUpdater.OnCallError += value;
-        remove => m_CurrentUpdater.OnCallError -= value;
-    }
+    public event Action<string, CallResult<object>> OnCallError;
 
-    public event OnTickUpdate OnTickUpdate
-    {
-        add => m_CurrentUpdater.OnTickUpdate += value;
-        remove => m_CurrentUpdater.OnTickUpdate -= value;
-    }
+    public event OnTickUpdate OnTickUpdate;
 
-    private readonly Dictionary<string, ITickUpdater> m_Updaters = new();
-
-    private string m_CurrentUpdaterIdentifier;
-    private ITickUpdater m_CurrentUpdater;
+    private readonly Dictionary<string, ITickUpdater> m_ActiveUpdaters = new();
+    private readonly Dictionary<string, ITickUpdater> m_InactiveUpdaters = new();
+    private readonly Dictionary<TickUpdateSubscription, ITickUpdater> m_SubscriptionMapping = new();
+    
+    private TimeSpan m_UpdateInterval;
 
     public TimeSpan UpdateInterval
     {
-        get => m_CurrentUpdater.UpdateInterval;
-        set => m_CurrentUpdater.UpdateInterval = value;
+        get => m_UpdateInterval;
+        set
+        {
+            m_UpdateInterval = value;
+            UpdateAllIntervals();
+        }
     }
 
     private DataHub()
@@ -48,54 +47,95 @@ internal class DataHub : ITickUpdater
 
     public void Dispose()
     {
-        m_CurrentUpdater.Dispose();
-        foreach (var updaters in m_Updaters.Values)
+        foreach (var updater in m_ActiveUpdaters.Values)
         {
-            updaters.Dispose();
+            updater?.Dispose();
+        }
+
+        foreach (var updater in m_InactiveUpdaters.Values)
+        {
+            updater?.Dispose();
         }
     }
 
-    public static ITickUpdater UseInPlaceUpdater(bool deleteCurrentUpdater)
+    public bool ManageUpdater(ITickUpdater updater, string identifier = InPlaceInstanceId)
     {
-        if (Instance.m_CurrentUpdater is not null)
-        {
-            _ = Instance.m_CurrentUpdater.Stop();
-            if (deleteCurrentUpdater)
-            {
-                _ = Instance.m_Updaters.Remove(Instance.m_CurrentUpdaterIdentifier);
-                Instance.m_CurrentUpdater.Dispose();
-            }
-        }
-        Instance.m_CurrentUpdaterIdentifier = InPlaceInstanceId;
-        if (Instance.m_Updaters.TryGetValue(InPlaceInstanceId, out var inplaceUpdater))
-        {
-            Instance.m_CurrentUpdater = inplaceUpdater;
-            return Instance;
-        }
-
-        inplaceUpdater = new KucoinTickUpdater();
-        Instance.m_CurrentUpdater = inplaceUpdater;
-        Instance.m_Updaters.Add(Instance.m_CurrentUpdaterIdentifier, Instance.m_CurrentUpdater);
-        return Instance;
+        m_ActiveUpdaters.Add(identifier, updater);
+        updater.UpdateInterval = UpdateInterval;
+        return updater.Start();
     }
 
     public bool Start()
     {
-        return m_CurrentUpdater.Start();
+        var success = true;
+        foreach (var identifier in m_InactiveUpdaters.Keys)
+        {
+            if (!m_InactiveUpdaters.Remove(identifier, out var updater))
+            {
+                success = false;
+            }
+            m_ActiveUpdaters.Add(identifier, updater);
+            success &= updater!.Start();
+        }
+        return success;
     }
 
     public bool Stop()
     {
-        return m_CurrentUpdater.Stop();
+        var success = true;
+        foreach (var identifier in m_InactiveUpdaters.Keys)
+        {
+            if (!m_InactiveUpdaters.Remove(identifier, out var updater))
+            {
+                success = false;
+            }
+            m_ActiveUpdaters.Add(identifier, updater);
+            success &= updater!.Stop();
+        }
+        return success;
     }
 
-    public TickUpdateSubscription Subscribe(ITickerTarget target)
+    public TickUpdateSubscription Subscribe(ITickUpdaterTarget target, ISubscriptionCallBack callBack)
     {
-        return m_CurrentUpdater.Subscribe(target);
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(callBack);
+        if (m_ActiveUpdaters.TryGetValue(target.UpdaterId, out var updater))
+        {
+            return updater.Subscribe(target, callBack);
+        }
+        if (!m_InactiveUpdaters.TryGetValue(target.UpdaterId, out updater))
+        {
+            throw new KeyNotFoundException($"could not find updater '{target.UpdaterId}'");
+        }
+        return updater.Subscribe(target, callBack);
     }
 
     public void Unsubscribe(TickUpdateSubscription subscription)
     {
-        m_CurrentUpdater.Unsubscribe(subscription);
+        if (!m_SubscriptionMapping.TryGetValue(subscription, out var updater))
+        {
+            return;
+        }
+        _ = m_SubscriptionMapping.Remove(subscription);
+        updater.Unsubscribe(subscription);
+    }
+
+    private void UpdateAllIntervals()
+    {
+        foreach (var updater in m_ActiveUpdaters.Values)
+        {
+            updater.UpdateInterval = UpdateInterval;
+        }
+        foreach (var updater in m_InactiveUpdaters.Values)
+        {
+            updater.UpdateInterval = UpdateInterval;
+        }
+    }
+
+    public static void ShutDownAll()
+    {
+        _ = s_HubInstance.Stop();
+        s_HubInstance?.Dispose();
+        s_HubInstance = null;
     }
 }
