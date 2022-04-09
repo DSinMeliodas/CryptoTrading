@@ -1,18 +1,14 @@
-﻿using LiveChartsCore;
-using LiveChartsCore.Collections;
-using LiveChartsCore.SkiaSharpView;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Commands;
 
-using System.ComponentModel;
-
-using System.Runtime.CompilerServices;
+using System.Windows.Input;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
 internal class MainViewModel : BaseViewModel
 {
-    public RangeObservableCollection<ISeries> Series { get; } = new ();
+    public ICommand OnShutDown => new StopCommand();
 
-    public RangeObservableCollection<Axis> XAxes { get; } = new ();
+    public ICommand OnStart => new StartCommand();
 
     protected override void Dispose(bool disposing)
     {

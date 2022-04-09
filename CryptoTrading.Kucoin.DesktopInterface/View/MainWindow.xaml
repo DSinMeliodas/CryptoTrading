@@ -3,12 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:wpf="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         xmlns:viewModel="clr-namespace:CryptoTrading.Kucoin.DesktopInterface.ViewModel"
+        xmlns:command="http://www.galasoft.ch/mvvmlight"
         mc:Ignorable="d"
         Title="Kucoin Desktop Interface"
         MinHeight="720"
         MinWidth="1280">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closing">
+            <command:EventToCommand Command="{Binding OnShutDown}" PassEventArgsToCommand="True" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding OnStart}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
     <Window.DataContext>
         <viewModel:MainViewModel/>
     </Window.DataContext>
@@ -32,7 +41,13 @@
                 <ColumnDefinition Name="Chart"/>
                 <ColumnDefinition Name="ChartOptions" MinWidth="100" MaxWidth="320"/>
             </Grid.ColumnDefinitions>
-            <wpf:CartesianChart Series="{Binding Series}" XAxes="{Binding XAxes}"/>
+            <TabControl 
+                ItemsSource="{Binding SelectedExchanges}"
+                ItemTemplate="{StaticResource ExchangeTemplate}">
+                <TabControl.DataContext>
+                    <viewModel:ExchangeSelectionViewModel/>
+                </TabControl.DataContext>
+            </TabControl>
         </Grid>
     </Grid>
 </Window>
