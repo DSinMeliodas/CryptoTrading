@@ -25,11 +25,14 @@
             <RowDefinition Name="HeadLine" MinHeight="100" MaxHeight="100"/>
             <RowDefinition Name="ChartArea"/>
         </Grid.RowDefinitions>
-        <Grid>
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Name="DropDown" Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <ComboBox ItemsSource="{Binding SelectableExchanges}">
+            <Grid.RowDefinitions>
+                <RowDefinition Name="HeaderRow" Height="Auto"/>
+            </Grid.RowDefinitions>
+            <ComboBox ItemsSource="{Binding Exchanges}" SelectedIndex="{Binding SelectedIndex}">
                 <ComboBox.DataContext>
                     <viewModel:ExchangeSelectionViewModel/>
                 </ComboBox.DataContext>
