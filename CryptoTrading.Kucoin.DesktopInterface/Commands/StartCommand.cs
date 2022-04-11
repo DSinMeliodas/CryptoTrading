@@ -2,12 +2,9 @@
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Commands;
 
-public class StartCommand : UseCaseCommand
+internal sealed class StartCommand : UseCaseCommand
 {
-    public const string InPlaceInstanceId = "Inplace";
-
-    public StartCommand(bool keepTargetAlive = false)
-        : base(new ApplicationStart(), keepTargetAlive)
+    public StartCommand() : base(new ApplicationStart())
     {
     }
 }

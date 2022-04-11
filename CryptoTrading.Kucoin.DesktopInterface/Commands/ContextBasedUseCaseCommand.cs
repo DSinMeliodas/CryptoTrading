@@ -1,18 +1,17 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.UseCases;
 
-using GalaSoft.MvvmLight.CommandWpf;
-
 namespace CryptoTrading.Kucoin.DesktopInterface.Commands;
 
-internal abstract class ContextBasedUseCaseCommand<TContext> : RelayCommand<TContext>
+internal abstract class ContextBasedUseCaseCommand<TContext> : RelayCommandBase<TContext>
 {
-    protected ContextBasedUseCaseCommand(IContextBaseUseCase<TContext> useCase, bool keepTargetAlive = false)
-        : base(useCase.Execute, keepTargetAlive)
+    private readonly IContextBaseUseCase<TContext> m_UseCase;
+
+    protected ContextBasedUseCaseCommand(IContextBaseUseCase<TContext> useCase)
     {
+        m_UseCase = useCase;
     }
 
-    protected ContextBasedUseCaseCommand(IConditionalContextBasedUseCase<TContext> useCase, bool keepTargetAlive = false)
-        : base(useCase.Execute, useCase.CanExecute, keepTargetAlive)
-    {
-    }
+    public override bool CanExecute(TContext? parameter) => parameter is not null;
+
+    public override void Execute(TContext? parameter) => m_UseCase.Execute(parameter);
 }

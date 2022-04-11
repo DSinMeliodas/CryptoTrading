@@ -1,18 +1,25 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.UseCases;
+﻿using CommunityToolkit.Mvvm.Input;
 
-using GalaSoft.MvvmLight.CommandWpf;
+using CryptoTrading.Kucoin.DesktopInterface.UseCases;
+
+using System;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Commands;
 
-public class UseCaseCommand : RelayCommand
+internal abstract class UseCaseCommand : IRelayCommand
 {
-    public UseCaseCommand(IUseCase useCase, bool keepTargetAlive = false)
-        : base(useCase.Execute, keepTargetAlive)
+    public event EventHandler? CanExecuteChanged;
+
+    private readonly IUseCase m_UseCase;
+
+    protected UseCaseCommand(IUseCase useCase)
     {
+        m_UseCase = useCase;
     }
 
-    public UseCaseCommand(IConditionalUseCase conditionalUseCase, bool keepTargetAlive = false)
-        : base(conditionalUseCase.Execute, conditionalUseCase.CanExecute, keepTargetAlive)
-    {
-    }
+    public bool CanExecute(object? _) => true;
+
+    public void Execute(object? _) => m_UseCase.Execute();
+
+    public void NotifyCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }

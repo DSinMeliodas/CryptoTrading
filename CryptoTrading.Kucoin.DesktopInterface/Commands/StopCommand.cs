@@ -6,8 +6,7 @@ namespace CryptoTrading.Kucoin.DesktopInterface.Commands;
 
 internal class StopCommand : ContextBasedUseCaseCommand<CancelEventArgs>
 {
-    public StopCommand(bool keepTargetAlive = false)
-        : base(new ApplicationStop(), keepTargetAlive)
+    public StopCommand() : base(new ApplicationStop())
     {
     }
 }
