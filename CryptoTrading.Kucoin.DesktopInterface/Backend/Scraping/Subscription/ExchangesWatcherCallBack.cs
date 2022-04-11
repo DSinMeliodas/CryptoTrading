@@ -19,7 +19,7 @@ internal sealed class ExchangesWatcherCallBack : ISubscriptionCallBack
 {
     public event EventHandler<ExchangesChangedEventArgs> OnExchangesChanged;
 
-    private readonly List<string> m_Exchanges;
+    private readonly List<string> m_Exchanges = new();
 
     public TickUpdateSubscription Subscription { get; set; }
 
@@ -47,12 +47,13 @@ internal sealed class ExchangesWatcherCallBack : ISubscriptionCallBack
         if (contained.Count == m_Exchanges.Count)
         {
             m_Exchanges.AddDifferenceToCollection(exchangeNames, contained);
+            OnExchangesChanged?.Invoke(this, new(m_Exchanges));
             return;
         }
         var notPresentAnyMore = m_Exchanges.Except(exchangeNames).ToHashSet();
         m_Exchanges.Clear();
         m_Exchanges.AddRange(exchangeNames);
-        OnExchangesChanged?.Invoke(this, new ());
+        OnExchangesChanged?.Invoke(this, new (m_Exchanges, notPresentAnyMore));
     }
 
     private void OnExchangeCollection(ITickUpdater sender, TickUpdateEventArgs args)
