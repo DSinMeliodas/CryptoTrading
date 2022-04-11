@@ -1,4 +1,4 @@
-﻿using LiveChartsCore.SkiaSharpView;
+﻿using LiveCharts.Wpf;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Domain;
 
