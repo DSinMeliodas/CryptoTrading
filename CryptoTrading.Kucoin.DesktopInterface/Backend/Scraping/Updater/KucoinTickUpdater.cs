@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
@@ -25,16 +26,25 @@ internal sealed class KucoinTickUpdater : ITickUpdater
     private readonly KucoinClient m_Client = new();
     private readonly Timer m_Ticker;
 
-    private TimeSpan m_UpdateInterval;
+    private TimeSpan m_UpdateInterval = ITickUpdater.DefaultUpdateInterval;
+    private bool m_Running;
 
     public TimeSpan UpdateInterval
     {
         get => m_UpdateInterval;
         set
         {
+            if (value <= TimeSpan.Zero)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value));
+            }
             var oldValue = m_UpdateInterval;
             m_UpdateInterval = value;
-            if (Start())
+            if (!m_Running)
+            {
+                return;
+            }
+            if (m_Ticker.Change(TimeSpan.Zero, UpdateInterval))
             {
                 return;
             }
@@ -53,9 +63,27 @@ internal sealed class KucoinTickUpdater : ITickUpdater
         m_Client?.Dispose();
     }
 
-    public bool Start() => m_Ticker.Change(TimeSpan.Zero, UpdateInterval);
+    public bool Start()
+    {
+        if (m_Running)
+        {
+            return false;
+        }
 
-    public bool Stop() => m_Ticker.Change(Timeout.InfiniteTimeSpan, UpdateInterval);
+        m_Running = true;
+        return m_Ticker.Change(TimeSpan.Zero, UpdateInterval);
+    }
+
+    public bool Stop()
+    {
+        if (!m_Running)
+        {
+            return false;
+        }
+
+        m_Running = false;
+        return m_Ticker.Change(Timeout.InfiniteTimeSpan, UpdateInterval);
+    }
 
     public TickUpdateSubscription Subscribe(ITickerTarget target, ISubscriptionCallBack callBack)
     {

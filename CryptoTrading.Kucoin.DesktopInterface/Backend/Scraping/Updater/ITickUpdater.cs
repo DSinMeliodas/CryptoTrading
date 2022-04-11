@@ -10,6 +10,8 @@ namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
 public interface ITickUpdater : IDisposable
 {
+    static TimeSpan DefaultUpdateInterval { get; } = TimeSpan.FromMinutes(1);
+
     public event Action<Task<CallResult<object>>> OnAsyncCallError;
     public event Action<CallResult<object>> OnCallError;
     public event OnTickUpdate OnTickUpdate;

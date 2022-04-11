@@ -20,6 +20,7 @@ public class TickUpdateEventArgs : EventArgs
     public bool TryGetSubscriptionResult<T>(TickUpdateSubscription subscription, out T subscriptionValue)
     {
         var success = m_Subscriptions.TryGetValue(subscription,  out var result);
-        return subscription.TryCastSubscribed(result, out subscriptionValue);
+        subscriptionValue = default;
+        return success && subscription.TryCastSubscribed(result, out subscriptionValue);
     }
 }
