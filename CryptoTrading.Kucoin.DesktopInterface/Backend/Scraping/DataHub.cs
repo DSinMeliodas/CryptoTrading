@@ -7,6 +7,7 @@ using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LiveCharts.SeriesAlgorithms;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
 
@@ -20,22 +21,25 @@ internal sealed class DataHub
     private static DataHub s_HubInstance;
 
     public event Action<string, Task<CallResult<object>>> OnAsyncCallError;
-
     public event Action<string, CallResult<object>> OnCallError;
-
     public event OnTickUpdate OnTickUpdate;
 
     private readonly Dictionary<string, ITickUpdater> m_ActiveUpdaters = new();
     private readonly Dictionary<string, ITickUpdater> m_InactiveUpdaters = new();
     private readonly Dictionary<TickUpdateSubscription, ITickUpdater> m_SubscriptionMapping = new();
     
-    private TimeSpan m_UpdateInterval;
+    private TimeSpan m_UpdateInterval = ITickUpdater.DefaultUpdateInterval;
+    private bool m_IsRunning;
 
     public TimeSpan UpdateInterval
     {
         get => m_UpdateInterval;
         set
         {
+            if (value <= TimeSpan.Zero)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value));
+            }
             m_UpdateInterval = value;
             UpdateAllIntervals();
         }
@@ -60,28 +64,41 @@ internal sealed class DataHub
 
     public bool ManageUpdater(ITickUpdater updater, string identifier = InPlaceInstanceId)
     {
-        m_ActiveUpdaters.Add(identifier, updater);
         updater.UpdateInterval = UpdateInterval;
+        if (!m_IsRunning)
+        {
+            m_InactiveUpdaters.Add(identifier, updater);
+            return true;
+        }
+        m_ActiveUpdaters.Add(identifier, updater);
         return updater.Start();
     }
 
     public bool Start()
     {
-        var success = true;
+        if (m_IsRunning)
+        {
+            return false;
+        }
+        m_IsRunning = true;
         foreach (var identifier in m_InactiveUpdaters.Keys)
         {
             if (!m_InactiveUpdaters.Remove(identifier, out var updater))
             {
-                success = false;
+                m_IsRunning = false;
             }
             m_ActiveUpdaters.Add(identifier, updater);
-            success &= updater!.Start();
+            m_IsRunning &= updater!.Start();
         }
-        return success;
+        return m_IsRunning;
     }
 
     public bool Stop()
     {
+        if (!m_IsRunning)
+        {
+            return false;
+        }
         var success = true;
         foreach (var identifier in m_InactiveUpdaters.Keys)
         {
@@ -92,6 +109,7 @@ internal sealed class DataHub
             m_ActiveUpdaters.Add(identifier, updater);
             success &= updater!.Stop();
         }
+        m_IsRunning = !success;
         return success;
     }
 
