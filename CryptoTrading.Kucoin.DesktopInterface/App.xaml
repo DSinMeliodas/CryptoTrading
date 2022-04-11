@@ -2,5 +2,15 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:CryptoTrading.Kucoin.DesktopInterface"
+             xmlns:domain="clr-namespace:CryptoTrading.Kucoin.DesktopInterface.Domain"
+             xmlns:wpf="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
              StartupUri="View/MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <DataTemplate x:Key="ExchangeTemplate" DataType="domain:Exchange">
+                <TextBox Text="{Binding Identifier}"/>
+                <!--<wpf:CartesianChart XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"/>-->
+            </DataTemplate>
+        </ResourceDictionary>
+    </Application.Resources>
 </Application>

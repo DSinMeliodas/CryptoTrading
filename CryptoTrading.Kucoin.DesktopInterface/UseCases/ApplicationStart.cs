@@ -15,5 +15,9 @@ public class ApplicationStart : IUseCase
             _ = MessageBox.Show("Could not init the updater, exiting the application...", "Error");
             Process.GetCurrentProcess().Kill(true);
         }
+        if (!DataHub.Instance.Start())
+        {
+
+        }
     }
 }
