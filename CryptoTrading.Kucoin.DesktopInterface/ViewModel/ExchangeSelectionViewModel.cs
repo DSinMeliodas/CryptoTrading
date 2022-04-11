@@ -4,6 +4,7 @@ using CryptoTrading.Kucoin.DesktopInterface.Domain;
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Windows;
 
@@ -11,10 +12,12 @@ namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
 internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 {
-    private readonly ExchangesWatcherCallBack m_CallBack;
+    private const int DefaultIndex = -1;
+    private const string DefaultExchange = "BTC-USDT";
 
     private readonly Dictionary<string, Exchange> m_SelectedExchangeMapping = new();
     private ObservableCollection<string> m_Exchanges;
+    private int m_SelectedIndex = -1;
 
     public ObservableCollection<string> Exchanges
     {
@@ -26,19 +29,43 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         }
     }
 
+    public int SelectedIndex
+    {
+        get => m_SelectedIndex;
+        set
+        {
+            m_SelectedIndex = value;
+            OnPropertyChanged();
+        }
+    }
+
     public ObservableCollection<Exchange> SelectedExchanges { get; } = new();
 
     public ExchangeSelectionViewModel() 
         : base(new InplaceUpdaterTarget(new ExchangeSymbols()),
             new ExchangesWatcherCallBack())
-    { 
-        m_CallBack = (ExchangesWatcherCallBack)Subscription.CallBack;
-        m_CallBack.OnExchangesChanged += UpdateExchanges;
+    {
     }
 
-    private void UpdateExchanges(object? sender, ExchangesChangedEventArgs e)
+    protected override void Init()
     {
-        throw new NotImplementedException();
+        base.Init();
+        var callBack = (ExchangesWatcherCallBack)Subscription.CallBack;
+        callBack.OnExchangesChanged += UpdateExchanges;
+    }
+
+    private void UpdateExchanges(object? _, ExchangesChangedEventArgs e)
+    {
+        Exchanges = new ObservableCollection<string>(e.Exchanges.ToImmutableSortedSet());
+        if (SelectedIndex == DefaultIndex)
+        {
+            SelectedIndex = Exchanges.IndexOf(DefaultExchange);
+        }
+        if (e.RemovedExchanges is null)
+        {
+            return;
+        }
+        RemoveWatchedExchanges(e.RemovedExchanges);
     }
 
     protected override void Dispose(bool disposing)
@@ -50,7 +77,7 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         }
     }
 
-    private void RemoveWatchedExchanges(ICollection<string> toBeRemoved)
+    private void RemoveWatchedExchanges(IReadOnlyCollection<string> toBeRemoved)
     {
         ArgumentNullException.ThrowIfNull(toBeRemoved);
         foreach (var exchange in toBeRemoved)
