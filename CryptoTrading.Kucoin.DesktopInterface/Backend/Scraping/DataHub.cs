@@ -6,6 +6,7 @@ using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using LiveCharts.SeriesAlgorithms;
 
@@ -27,6 +28,7 @@ internal sealed class DataHub
     private readonly Dictionary<string, ITickUpdater> m_ActiveUpdaters = new();
     private readonly Dictionary<string, ITickUpdater> m_InactiveUpdaters = new();
     private readonly Dictionary<TickUpdateSubscription, ITickUpdater> m_SubscriptionMapping = new();
+    private readonly AutoResetEvent m_SubscribtionWaiter = new (false);
     
     private TimeSpan m_UpdateInterval = ITickUpdater.DefaultUpdateInterval;
     private bool m_IsRunning;
@@ -53,13 +55,14 @@ internal sealed class DataHub
     {
         foreach (var updater in m_ActiveUpdaters.Values)
         {
-            updater?.Dispose();
+            updater.Dispose();
         }
 
         foreach (var updater in m_InactiveUpdaters.Values)
         {
-            updater?.Dispose();
+            updater.Dispose();
         }
+        m_SubscribtionWaiter.Dispose();
     }
 
     public bool ManageUpdater(ITickUpdater updater, string identifier = InPlaceInstanceId)
@@ -74,8 +77,17 @@ internal sealed class DataHub
         return updater.Start();
     }
 
-    public bool Start()
+    public bool Start(bool waitForSubscription)
     {
+        if (waitForSubscription)
+        {
+            _ = Task.Run(() =>
+            {
+                _ = m_SubscribtionWaiter.WaitOne();
+                _ = Start(false);
+            });
+            return true;
+        }
         if (m_IsRunning)
         {
             return false;
@@ -119,13 +131,13 @@ internal sealed class DataHub
         ArgumentNullException.ThrowIfNull(callBack);
         if (m_ActiveUpdaters.TryGetValue(target.UpdaterId, out var updater))
         {
-            return updater.Subscribe(target, callBack);
+            return SubscribeInternal(target, callBack, updater);
         }
         if (!m_InactiveUpdaters.TryGetValue(target.UpdaterId, out updater))
         {
             throw new KeyNotFoundException($"could not find updater '{target.UpdaterId}'");
         }
-        return updater.Subscribe(target, callBack);
+        return SubscribeInternal(target, callBack, updater);
     }
 
     public void Unsubscribe(TickUpdateSubscription subscription)
@@ -136,6 +148,16 @@ internal sealed class DataHub
         }
         _ = m_SubscriptionMapping.Remove(subscription);
         updater.Unsubscribe(subscription);
+    }
+
+    private TickUpdateSubscription SubscribeInternal(
+        ITickUpdaterTarget target,
+        ISubscriptionCallBack callBack,
+        ITickUpdater updater)
+    {
+        var result =  updater.Subscribe(target, callBack);
+        _ = m_SubscribtionWaiter.Set();
+        return result;
     }
 
     private void UpdateAllIntervals()
