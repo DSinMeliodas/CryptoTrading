@@ -25,12 +25,16 @@ internal sealed class ExchangesWatcherCallBack : ISubscriptionCallBack
 
     public void OnAsyncCallError(Task<CallResult<object>> obj)
     {
-        throw new System.NotImplementedException();
+#if DEBUG
+        MessageBox.Show(obj.Exception?.ToString());
+#endif
     }
 
     public void OnCallError(CallResult<object> obj)
     {
-        throw new System.NotImplementedException();
+#if DEBUG
+        MessageBox.Show(obj.Error?.ToString());
+#endif
     }
 
     public void OnTickUpdate(ITickUpdater _, TickUpdateEventArgs args)
