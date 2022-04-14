@@ -139,6 +139,16 @@ internal sealed class DataHub
         return SubscribeInternal(target, callBack, updater);
     }
 
+    public bool TryStartUpdater(string identifier)
+    {
+        return m_InactiveUpdaters.TryGetValue(identifier, out var updater) && updater.Start();
+    }
+
+    public bool TryStopUpdater(string identifier)
+    {
+        return m_ActiveUpdaters.TryGetValue(identifier, out var updater) && updater.Stop();
+    }
+
     public void Unsubscribe(TickUpdateSubscription subscription)
     {
         if (!m_SubscriptionMapping.TryGetValue(subscription, out var updater))
