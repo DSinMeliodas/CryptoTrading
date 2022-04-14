@@ -6,7 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Exchange;
+using CryptoTrading.Kucoin.DesktopInterface.UseCases;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
@@ -14,10 +17,10 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 {
     private const int DefaultIndex = -1;
     private const string DefaultExchange = "BTC-USDT";
-
-    private readonly Dictionary<string, Exchange> m_SelectedExchangeMapping = new();
+    
     private ObservableCollection<string> m_Exchanges;
-    private int m_SelectedIndex = -1;
+    private int m_SelectedIndex;
+    private string m_SelectedExchange;
 
     public ObservableCollection<string> Exchanges
     {
@@ -39,7 +42,20 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         }
     }
 
-    public ObservableCollection<Exchange> SelectedExchanges { get; } = new();
+    public string SelectedExchange
+    {
+        get => m_SelectedExchange;
+        set
+        {
+            m_SelectedExchange = value;
+            OnPropertyChanged();
+            var useCase = new SelectExchange(ExchangeManager.Instance, m_SelectedExchange);
+            useCase.Execute();
+        }
+    }
+
+    public ObservableCollection<Exchange> OpenedExchanges { get; private set; } = new ();
+
 
     public ExchangeSelectionViewModel() 
         : base(new InplaceUpdaterTarget(new ExchangeSymbols()),
@@ -80,14 +96,8 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
     private void RemoveWatchedExchanges(IReadOnlyCollection<string> toBeRemoved)
     {
         ArgumentNullException.ThrowIfNull(toBeRemoved);
-        foreach (var exchange in toBeRemoved)
-        {
-            if (!m_SelectedExchangeMapping.Remove(exchange, out var removedTab))
-            {
-                _ = MessageBox.Show($"Trying to remove exchange '{exchange} failed, it was not present.");
-                continue;
-            }
-            _ = SelectedExchanges.Remove(removedTab);
-        }
+        var stillOpen = OpenedExchanges.Where(ex => toBeRemoved.Contains(ex.Identifier.Identifier));
+        OpenedExchanges = new(stillOpen);
+        
     }
 }
