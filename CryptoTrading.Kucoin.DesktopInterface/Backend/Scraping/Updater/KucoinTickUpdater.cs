@@ -1,5 +1,4 @@
-﻿using CryptoExchange.Net.Objects;
-
+﻿
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Querying;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
@@ -8,20 +7,12 @@ using Kucoin.Net.Clients;
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
 internal sealed class KucoinTickUpdater : ITickUpdater
 {
-    public event Action<Task<CallResult<object>>> OnAsyncCallError;
-    public event Action<CallResult<object>> OnCallError;
-    public event OnTickUpdate OnTickUpdate;
-
     private readonly ConcurrentDictionary<TickUpdateSubscription, bool> m_Subscriptions = new();
     private readonly KucoinClient m_Client = new();
     private readonly Timer m_Ticker;
@@ -95,9 +86,6 @@ internal sealed class KucoinTickUpdater : ITickUpdater
         {
             throw new ArgumentException("target already subscribed");
         }
-        OnAsyncCallError += callBack.OnAsyncCallError;
-        OnCallError += callBack.OnCallError;
-        OnTickUpdate += callBack.OnTickUpdate;
         return subscription;
 
     }
@@ -105,13 +93,7 @@ internal sealed class KucoinTickUpdater : ITickUpdater
     public void Unsubscribe(TickUpdateSubscription subscription)
     {
         ArgumentNullException.ThrowIfNull(subscription);
-        if(!m_Subscriptions.TryRemove(subscription, out _))
-        {
-            return;
-        }
-        OnAsyncCallError -= subscription.CallBack.OnAsyncCallError;
-        OnCallError -= subscription.CallBack.OnCallError;
-        OnTickUpdate -= subscription.CallBack.OnTickUpdate;
+        _ = m_Subscriptions.TryRemove(subscription, out _);
     }
 
     private void OnTick(object _)
@@ -119,29 +101,11 @@ internal sealed class KucoinTickUpdater : ITickUpdater
         var resultsBySubscription = SubscriptionQuery.All(m_Subscriptions.Keys)
                                 .UpdateOn(m_Client)
                                 .RemapInnerValueToOuterValue();
-        var actualResultsBySubscription = resultsBySubscription.AsParallel()
-                                            .Select(ToResultOrErrorEventCall)
-                                            .Where(r => r.Item3);
-        var resultsMapped = actualResultsBySubscription.ToDictionary(tuple => tuple.Item1, tuple => tuple.Item2);
-        OnTickUpdate?.Invoke(this, new(resultsMapped));
-    }
-
-    private (TickUpdateSubscription, object, bool) ToResultOrErrorEventCall(KeyValuePair<TickUpdateSubscription, Task<CallResult<object>>> kvp)
-    {
-        var task = kvp.Value;
-        task.Wait();
-        if (!task.IsCompletedSuccessfully)
+        foreach (var subscriptionWithResult in resultsBySubscription)
         {
-            OnAsyncCallError?.Invoke(kvp.Value);
-            return (kvp.Key, null, false);
+            var subscription = subscriptionWithResult.Key;
+            var asyncResult = subscriptionWithResult.Value;
+            subscription.NotifyTickUpdate(asyncResult);
         }
-        var call = task.Result;
-        if (call.Success)
-        {
-            return (kvp.Key, call.Data, true);
-        }
-        OnCallError?.Invoke(call);
-        return (kvp.Key, call.Data, false);
-
     }
 }

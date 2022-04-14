@@ -23,26 +23,22 @@ internal sealed class ExchangesWatcherCallBack : ISubscriptionCallBack
 
     public TickUpdateSubscription Subscription { get; set; }
 
-    public void OnAsyncCallError(Task<CallResult<object>> obj)
-    {
-#if DEBUG
-        MessageBox.Show(obj.Exception?.ToString());
-#endif
-    }
 
-    public void OnCallError(CallResult<object> obj)
-    {
-#if DEBUG
-        MessageBox.Show(obj.Error?.ToString());
-#endif
-    }
-
-    public void OnTickUpdate(ITickUpdater _, TickUpdateEventArgs args)
+    public void OnTickUpdate(TickUpdateEventArgs args)
     {
         ArgumentNullException.ThrowIfNull(args);
-        if (!args.TryGetSubscriptionResult(Subscription, out IEnumerable<KucoinSymbol> subscription))
+        if (args.IsError)
         {
-            MessageBox.Show("Could not update Symbols.");
+#if DEBUG
+            MessageBox.Show(args.Error?.ToString());
+#endif
+            return;
+        }
+        if (!args.TryGetCastedResult(out IEnumerable<KucoinSymbol> subscription))
+        {
+#if DEBUG
+            MessageBox.Show("Failed retrieving result");
+#endif
             return;
         }
 

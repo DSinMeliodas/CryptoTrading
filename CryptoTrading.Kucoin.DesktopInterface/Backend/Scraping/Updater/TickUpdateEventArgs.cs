@@ -1,26 +1,77 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
+﻿using CryptoExchange.Net.Objects;
+
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
-public delegate void OnTickUpdate(ITickUpdater sender, TickUpdateEventArgs args);
+public delegate void OnTickUpdate(TickUpdateEventArgs args);
 
 public class TickUpdateEventArgs : EventArgs
 {
+    public Task<CallResult<object>> AsyncCallResult { get; }
+    public CallResult<object> CallResult { get; }
+    public Exception? Error { get; }
+    public bool IsError { get; }
+    public object? Result { get; }
 
-    private readonly IReadOnlyDictionary<TickUpdateSubscription, object> m_Subscriptions;
+    private readonly TickUpdateSubscription m_Subscription;
 
-    public TickUpdateEventArgs(IReadOnlyDictionary<TickUpdateSubscription, object> subscription)
+    private TickUpdateEventArgs(
+        TickUpdateSubscription subscription,
+        Task<CallResult<object>> asyncCallResult,
+        Exception error) : this(subscription, asyncCallResult, null, error)
     {
-        m_Subscriptions = subscription;
     }
 
-    public bool TryGetSubscriptionResult<T>(TickUpdateSubscription subscription, out T subscriptionValue)
+    private TickUpdateEventArgs(
+        TickUpdateSubscription subscription,
+        Task<CallResult<object>> asyncCallResult,
+        CallResult<object> callResult,
+        Exception error)
     {
-        var success = m_Subscriptions.TryGetValue(subscription,  out var result);
+        AsyncCallResult = asyncCallResult;
+        CallResult = callResult;
+        Error = error;
+        IsError = true;
+        m_Subscription = subscription;
+    }
+
+    private TickUpdateEventArgs(
+        TickUpdateSubscription subscription,
+        Task<CallResult<object>> asyncCallResult,
+        CallResult<object> callResult,
+        object result)
+    {
+        AsyncCallResult = asyncCallResult;
+        CallResult = callResult;
+        IsError = false;
+        Result = result;
+        m_Subscription = subscription;
+    }
+
+    public bool TryGetCastedResult<T>(out T subscriptionValue)
+    {
         subscriptionValue = default;
-        return success && subscription.TryCastSubscribed(result, out subscriptionValue);
+        return !IsError && m_Subscription.TryCastSubscribed(Result, out subscriptionValue);
+    }
+
+    public static async Task<TickUpdateEventArgs> CreateFromAsync(TickUpdateSubscription subscription, Task<CallResult<object>> asyncCallResult)
+    {
+        try
+        {
+            var call = await asyncCallResult;
+            if (!call)
+            {
+                return new TickUpdateEventArgs(subscription, asyncCallResult, call, new Exception(call.Error!.ToString()));
+            }
+            return new TickUpdateEventArgs(subscription, asyncCallResult, call, call.Data);
+        }
+        catch (Exception exception)
+        {
+            return new TickUpdateEventArgs(subscription, asyncCallResult, exception);
+        }
     }
 }
