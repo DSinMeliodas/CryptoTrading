@@ -4,9 +4,9 @@ namespace CryptoTrading.Kucoin.DesktopInterface.Commands;
 
 internal abstract class ContextBasedUseCaseCommand<TContext> : RelayCommandBase<TContext>
 {
-    private readonly IContextBaseUseCase<TContext> m_UseCase;
+    private readonly IContextBasedUseCase<TContext> m_UseCase;
 
-    protected ContextBasedUseCaseCommand(IContextBaseUseCase<TContext> useCase)
+    protected ContextBasedUseCaseCommand(IContextBasedUseCase<TContext> useCase)
     {
         m_UseCase = useCase;
     }

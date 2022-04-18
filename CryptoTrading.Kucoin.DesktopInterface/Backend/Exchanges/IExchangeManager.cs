@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using CryptoTrading.Kucoin.DesktopInterface.Domain;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
+
+using System.Collections.Generic;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Exchange;
 

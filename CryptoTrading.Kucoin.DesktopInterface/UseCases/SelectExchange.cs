@@ -1,7 +1,7 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Exchange;
-using CryptoTrading.Kucoin.DesktopInterface.Domain;
-using CryptoTrading.Kucoin.DesktopInterface.Specification;
-using LiveCharts.Wpf;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Factories;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
+using CryptoTrading.Kucoin.DesktopInterface.Specifications;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.UseCases;
 
@@ -15,7 +15,8 @@ internal sealed class SelectExchange
     public SelectExchange(IExchangeManager manager, string selectedExchangeIdentifier)
     {
         m_Manager = manager;
-        m_SelectedExchangeIdentifier = new ExchangeIdentifier(selectedExchangeIdentifier);
+        var identifierFactory = new ExchangeIdentifierFactory(selectedExchangeIdentifier);
+        m_SelectedExchangeIdentifier = identifierFactory.Create();
         m_ExchangeIsCurrent = new ExchangeIsCurrent(m_Manager);
         m_ExchangeIsOpen = new ExchangeIsOpen(m_Manager);
     }
@@ -28,7 +29,7 @@ internal sealed class SelectExchange
         }
         if (m_ExchangeIsOpen.IsMet(m_SelectedExchangeIdentifier))
         {
-            var data = m_Manager.SetOpenedAsCurrent(m_SelectedExchangeIdentifier);
+            m_Manager.SetOpenedAsCurrent(m_SelectedExchangeIdentifier);
             return;
         }
 

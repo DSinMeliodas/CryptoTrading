@@ -1,12 +1,11 @@
-﻿using System;
-using CryptoTrading.Kucoin.DesktopInterface.Domain;
-
-using System.Collections.Generic;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
-using Kucoin.Net.Objects.Models.Spot;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
+
+using System;
+using System.Collections.Generic;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Exchange;
 
