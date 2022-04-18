@@ -1,15 +1,15 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
-using CryptoTrading.Kucoin.DesktopInterface.Domain;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
+using CryptoTrading.Kucoin.DesktopInterface.Repositories;
+using CryptoTrading.Kucoin.DesktopInterface.UseCases;
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Exchange;
-using CryptoTrading.Kucoin.DesktopInterface.UseCases;
+using System.Windows.Threading;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
@@ -19,8 +19,8 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
     private const string DefaultExchange = "BTC-USDT";
     
     private ObservableCollection<string> m_Exchanges;
-    private int m_SelectedIndex;
-    private string m_SelectedExchange;
+    private int m_SelectedIndex = DefaultIndex;
+    private IExchangeRepository m_ExchangeRepository;
 
     public ObservableCollection<string> Exchanges
     {
@@ -39,18 +39,21 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         {
             m_SelectedIndex = value;
             OnPropertyChanged();
-        }
-    }
+            if (m_SelectedIndex < 0)
+            {
+                return;
+            }
 
-    public string SelectedExchange
-    {
-        get => m_SelectedExchange;
-        set
-        {
-            m_SelectedExchange = value;
-            OnPropertyChanged();
-            var useCase = new SelectExchange(ExchangeManager.Instance, m_SelectedExchange);
-            useCase.Execute();
+            var selectedExchange = Exchanges[m_SelectedIndex];
+            if (string.IsNullOrWhiteSpace(selectedExchange))
+            {
+                return;
+            }
+
+            LoadExchange();
+            // Lade Daten für gewählten exchange
+            // aus applikations sicht ist es eine query
+            // hier brauche ich keine UseCases die kommen aus dem Model
         }
     }
 
@@ -93,10 +96,25 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         }
     }
 
+    private void LoadExchange()
+    {
+        var loadUseCase = new LoadExchangeUseCase(m_ExchangeRepository);
+        var exchange = loadUseCase.Execute(null);
+        AddExchange(exchange);
+    }
+
+    private void AddExchange(Exchange exchange)
+    {
+        Dispatcher.CurrentDispatcher.Invoke(() =>
+        {
+            OpenedExchanges.Add(exchange);
+        });
+    }
+
     private void RemoveWatchedExchanges(IReadOnlyCollection<string> toBeRemoved)
     {
         ArgumentNullException.ThrowIfNull(toBeRemoved);
-        var stillOpen = OpenedExchanges.Where(ex => toBeRemoved.Contains(ex.Identifier.Identifier));
+        var stillOpen = OpenedExchanges.Where(ex => toBeRemoved.Contains(ex.Identifier.Symbol));
         OpenedExchanges = new(stillOpen);
         
     }
