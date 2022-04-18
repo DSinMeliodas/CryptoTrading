@@ -1,4 +1,4 @@
-﻿namespace CryptoTrading.Kucoin.DesktopInterface;
+﻿namespace CryptoTrading.Kucoin.DesktopInterface.Specifications;
 
 public interface ISpecification<TSpecTarget>
 {

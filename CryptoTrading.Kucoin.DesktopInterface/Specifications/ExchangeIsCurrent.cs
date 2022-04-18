@@ -1,7 +1,7 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Exchange;
-using CryptoTrading.Kucoin.DesktopInterface.Domain;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 
-namespace CryptoTrading.Kucoin.DesktopInterface.Specification;
+namespace CryptoTrading.Kucoin.DesktopInterface.Specifications;
 
 internal sealed class ExchangeIsCurrent : ISpecification<ExchangeIdentifier>
 {
