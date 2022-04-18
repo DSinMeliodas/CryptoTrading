@@ -23,4 +23,9 @@
     <PackageReference Include="Kucoin.Net" Version="4.0.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Domain\Factories\" />
+    <Folder Include="UseCases\Requests\" />
+  </ItemGroup>
+
 </Project>
