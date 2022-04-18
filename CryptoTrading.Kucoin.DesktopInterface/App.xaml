@@ -4,10 +4,11 @@
              xmlns:local="clr-namespace:CryptoTrading.Kucoin.DesktopInterface"
              xmlns:domain="clr-namespace:CryptoTrading.Kucoin.DesktopInterface.Domain"
              xmlns:wpf="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+             xmlns:records="clr-namespace:CryptoTrading.Kucoin.DesktopInterface.Domain.Records"
              StartupUri="View/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
-            <DataTemplate x:Key="ExchangeTemplate" DataType="domain:Exchange">
+            <DataTemplate x:Key="ExchangeTemplate" DataType="records:Exchange">
                 <TextBox Text="{Binding Identifier}"/>
                 <!--<wpf:CartesianChart XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"/>-->
             </DataTemplate>
