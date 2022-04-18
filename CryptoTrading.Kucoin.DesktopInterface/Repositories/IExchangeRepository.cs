@@ -7,5 +7,5 @@ namespace CryptoTrading.Kucoin.DesktopInterface.Repositories;
 
 public interface IExchangeRepository : IDisposable
 {
-    Exchange GetExchange(string exchangeId, IExchangeUpdateCallBack callBack);
+    Exchange GetExchange(ExchangeIdentifier exchangeId, IExchangeUpdateCallBack callBack);
 }

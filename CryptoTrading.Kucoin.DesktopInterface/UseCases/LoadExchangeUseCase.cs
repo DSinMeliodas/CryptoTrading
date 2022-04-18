@@ -1,4 +1,5 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Domain.Factories;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories;
 using CryptoTrading.Kucoin.DesktopInterface.UseCases.Requests;
 
@@ -13,5 +14,9 @@ internal sealed class LoadExchangeUseCase : IQueryUseCase<IExchangeRequest, Exch
         m_ExchangeRepository = exchangeRepository;
     }
 
-    public Exchange Execute(IExchangeRequest request) => m_ExchangeRepository.GetExchange(request.ExchangeId, request.UpdateCallBack);
+    public Exchange Execute(IExchangeRequest request)
+    {
+        var idFactory = new ExchangeIdentifierFactory(request.ExchangeId);
+        return m_ExchangeRepository.GetExchange(idFactory.Create(), request.UpdateCallBack);
+    }
 }
