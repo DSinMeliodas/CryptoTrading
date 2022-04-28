@@ -20,6 +20,8 @@ internal sealed class KucoinTickUpdater : ITickUpdater
     private TimeSpan m_UpdateInterval = ITickUpdater.DefaultUpdateInterval;
     private bool m_Running;
 
+    public IExchangeUpdater BaseUpdater { get; }
+
     public TimeSpan UpdateInterval
     {
         get => m_UpdateInterval;
@@ -98,14 +100,6 @@ internal sealed class KucoinTickUpdater : ITickUpdater
 
     private void OnTick(object _)
     {
-        var resultsBySubscription = SubscriptionQuery.All(m_Subscriptions.Keys)
-                                .UpdateOn(m_Client)
-                                .RemapInnerValueToOuterValue();
-        foreach (var subscriptionWithResult in resultsBySubscription)
-        {
-            var subscription = subscriptionWithResult.Key;
-            var asyncResult = subscriptionWithResult.Value;
-            subscription.NotifyTickUpdate(asyncResult);
-        }
+        //TODO Change To using Of ExchangeUpdater
     }
 }

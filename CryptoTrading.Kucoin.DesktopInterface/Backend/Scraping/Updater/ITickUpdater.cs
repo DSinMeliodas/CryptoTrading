@@ -12,6 +12,8 @@ public interface ITickUpdater : IDisposable
 
     TimeSpan UpdateInterval { get; set; }
 
+    IExchangeUpdater BaseUpdater { get; }
+
     bool Start();
 
     bool Stop();
