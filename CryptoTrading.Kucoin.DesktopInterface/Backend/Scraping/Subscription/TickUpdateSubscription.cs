@@ -11,9 +11,9 @@ public sealed class TickUpdateSubscription : IEquatable<TickUpdateSubscription>
 {
     public ISubscriptionCallBack CallBack { get; }
     public Guid Id { get; }
-    public DataTargetIdentifier Target { get; }
+    public IExchangeTarget Target { get; }
 
-    public TickUpdateSubscription(Guid id, DataTargetIdentifier target, ISubscriptionCallBack callBack)
+    public TickUpdateSubscription(Guid id, IExchangeTarget target, ISubscriptionCallBack callBack)
     {
         CallBack = callBack;
         Id = id;

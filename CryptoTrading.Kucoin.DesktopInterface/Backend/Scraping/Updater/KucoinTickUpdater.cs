@@ -1,11 +1,9 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
-
-using Kucoin.Net.Clients;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
@@ -73,11 +71,12 @@ internal sealed class KucoinTickUpdater : ITickUpdater
         return m_Ticker.Change(Timeout.InfiniteTimeSpan, UpdateInterval);
     }
 
-    public TickUpdateSubscription Subscribe(DataTargetIdentifier target, ISubscriptionCallBack callBack)
+    public TickUpdateSubscription Subscribe(IExchangeTarget target, ISubscriptionCallBack callBack)
     {
-        if (target is DataTargetIdentifier.Undefined)
+        ArgumentNullException.ThrowIfNull(target);
+        if (target.DataTargetIdentifier is DataTargetIdentifier.Undefined)
         {
-            throw new ArgumentException($"target is undefined", nameof(target));
+            throw new ArgumentException("target is undefined", nameof(target));
         }
         ArgumentNullException.ThrowIfNull(callBack);
         var id = Guid.NewGuid();
