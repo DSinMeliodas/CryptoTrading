@@ -1,4 +1,4 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Exchange;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Management;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Specifications;
@@ -12,8 +12,5 @@ internal sealed class ExchangeIsOpen : ISpecification<ExchangeIdentifier>
         m_Manager = manager;
     }
 
-    public bool IsMet(ExchangeIdentifier target)
-    {
-        return m_Manager.OpenExchangeIdentifiers.Contains(target);
-    }
+    public bool IsMet(ExchangeIdentifier target) => m_Manager.IsOpen(target);
 }
