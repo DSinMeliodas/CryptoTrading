@@ -2,10 +2,11 @@
 using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
 
 using System;
+using System.Threading.Tasks;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Repositories;
 
 public interface IExchangeRepository : IDisposable
 {
-    Exchange GetExchange(ExchangeIdentifier exchangeId, IExchangeUpdateCallBack callBack);
+    Task<Exchange> GetExchange(ExchangeIdentifier exchangeId, IExchangeUpdateCallBack callBack);
 }
