@@ -13,7 +13,6 @@ internal sealed class KucoinTickUpdater : ITickUpdater
     private readonly Timer m_Ticker;
 
     private TimeSpan m_UpdateInterval = ITickUpdater.DefaultUpdateInterval;
-    private bool m_Running;
 
     public IExchangeUpdater BaseUpdater { get; }
 
@@ -28,7 +27,7 @@ internal sealed class KucoinTickUpdater : ITickUpdater
             }
             var oldValue = m_UpdateInterval;
             m_UpdateInterval = value;
-            if (!m_Running)
+            if (!Running)
             {
                 return;
             }
@@ -39,6 +38,7 @@ internal sealed class KucoinTickUpdater : ITickUpdater
             m_UpdateInterval = oldValue;
         }
     }
+    public bool Running { get; private set; }
 
     public KucoinTickUpdater()
     {
@@ -51,23 +51,23 @@ internal sealed class KucoinTickUpdater : ITickUpdater
 
     public bool Start()
     {
-        if (m_Running)
+        if (Running)
         {
             return false;
         }
 
-        m_Running = true;
+        Running = true;
         return m_Ticker.Change(TimeSpan.Zero, UpdateInterval);
     }
 
     public bool Stop()
     {
-        if (!m_Running)
+        if (!Running)
         {
             return false;
         }
 
-        m_Running = false;
+        Running = false;
         return m_Ticker.Change(Timeout.InfiniteTimeSpan, UpdateInterval);
     }
 

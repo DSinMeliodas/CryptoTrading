@@ -10,9 +10,11 @@ public interface ITickUpdater : IDisposable
 {
     static TimeSpan DefaultUpdateInterval { get; } = TimeSpan.FromMinutes(1);
 
+    IExchangeUpdater BaseUpdater { get; }
+
     TimeSpan UpdateInterval { get; set; }
 
-    IExchangeUpdater BaseUpdater { get; }
+    public bool Running { get; }
 
     bool Start();
 

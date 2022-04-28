@@ -9,4 +9,6 @@ namespace CryptoTrading.Kucoin.DesktopInterface.Repositories;
 public interface IExchangeRepository : IDisposable
 {
     Task<Exchange> GetExchange(ExchangeIdentifier exchangeId, IExchangeUpdateCallBack callBack);
+
+    Task DeleteExchange(ExchangeIdentifier exchangeId);
 }

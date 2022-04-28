@@ -1,4 +1,5 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping;
+﻿
+using CryptoTrading.Kucoin.DesktopInterface.Repositories;
 
 using System.ComponentModel;
 
@@ -8,6 +9,6 @@ public sealed class ApplicationStop : IContextBasedUseCase<CancelEventArgs>
 {
     public void Execute(CancelEventArgs _)
     {
-        DataHub.ShutDownAll();
+        KucoinExchangeRepository.Close();
     }
 }

@@ -17,6 +17,6 @@ internal sealed class LoadExchangeUseCase : IQueryUseCase<IExchangeRequest, Exch
     public Exchange Execute(IExchangeRequest request)
     {
         var idFactory = new ExchangeIdentifierFactory(request.ExchangeId);
-        return m_ExchangeRepository.GetExchange(idFactory.Create(), request.UpdateCallBack);
+        return m_ExchangeRepository.GetExchange(idFactory.Create(), request.UpdateCallBack).Result;
     }
 }

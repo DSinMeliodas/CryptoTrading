@@ -1,5 +1,4 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories;
 using CryptoTrading.Kucoin.DesktopInterface.UseCases;
@@ -10,6 +9,8 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Threading;
+using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
+using CryptoTrading.Kucoin.DesktopInterface.UseCases.Requests;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
@@ -20,7 +21,6 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
     
     private ObservableCollection<string> m_Exchanges;
     private int m_SelectedIndex = DefaultIndex;
-    private IExchangeRepository m_ExchangeRepository;
 
     public ObservableCollection<string> Exchanges
     {
@@ -60,16 +60,15 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
     public ObservableCollection<Exchange> OpenedExchanges { get; private set; } = new ();
 
 
-    public ExchangeSelectionViewModel() 
-        : base(new InplaceUpdaterTarget(new ExchangeSymbols()),
-            new ExchangesWatcherCallBack())
+    public ExchangeSelectionViewModel()
+        : base(new ExchangesUpdate())
     {
     }
 
     protected override void Init()
     {
         base.Init();
-        var callBack = (ExchangesWatcherCallBack)Subscription.CallBack;
+        var callBack = (ExchangesUpdate)Subscription.CallBack;
         callBack.OnExchangesChanged += UpdateExchanges;
     }
 
@@ -98,8 +97,11 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 
     private void LoadExchange()
     {
-        var loadUseCase = new LoadExchangeUseCase(m_ExchangeRepository);
-        var exchange = loadUseCase.Execute(null);
+        var loadUseCase = new LoadExchangeUseCase(KucoinExchangeRepository.SingletonInstance);
+        var callBack = new ExchangeLoadedCallback();
+        callBack.OnLoaded += AddExchange;
+        var request = new ExchangeRequest(Exchanges[SelectedIndex], callBack);
+        var exchange = loadUseCase.Execute(request);
         AddExchange(exchange);
     }
 
