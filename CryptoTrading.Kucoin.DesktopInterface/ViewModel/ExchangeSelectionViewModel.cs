@@ -1,16 +1,14 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
+﻿using System;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Management;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories;
+using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
 using CryptoTrading.Kucoin.DesktopInterface.UseCases;
+using CryptoTrading.Kucoin.DesktopInterface.UseCases.Requests;
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Windows.Threading;
-using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
-using CryptoTrading.Kucoin.DesktopInterface.UseCases.Requests;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
@@ -18,8 +16,11 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 {
     private const int DefaultIndex = -1;
     private const string DefaultExchange = "BTC-USDT";
-    
+
+    private readonly IExchangeManager m_ExchangeManager = new ExchangeManager();
+
     private ObservableCollection<string> m_Exchanges;
+    private ObservableCollection<Exchange> m_OpenedExchanges;
     private int m_SelectedIndex = DefaultIndex;
 
     public ObservableCollection<string> Exchanges
@@ -50,19 +51,27 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
                 return;
             }
 
-            LoadExchange();
+            var exchange = LoadExchange();
+            SelectExchange(exchange);
             // Lade Daten für gewählten exchange
             // aus applikations sicht ist es eine query
             // hier brauche ich keine UseCases die kommen aus dem Model
         }
     }
 
-    public ObservableCollection<Exchange> OpenedExchanges { get; private set; } = new ();
-
-
-    public ExchangeSelectionViewModel()
-        : base(new ExchangesUpdate())
+    public ObservableCollection<Exchange> OpenedExchanges
     {
+        get => m_OpenedExchanges ??= new();
+        private set
+        {
+            m_OpenedExchanges = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public ExchangeSelectionViewModel() : base(new ExchangesUpdate())
+    {
+        m_ExchangeManager.OnOpenedExchangesChanged += OnOpenExchangesChanged;
     }
 
     protected override void Init()
@@ -72,18 +81,19 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         callBack.OnExchangesChanged += UpdateExchanges;
     }
 
-    private void UpdateExchanges(object? _, ExchangesChangedEventArgs e)
+    private void UpdateExchanges(object? _, ExchangesChangedEventArgs args)
     {
-        Exchanges = new ObservableCollection<string>(e.Exchanges.ToImmutableSortedSet());
+        Exchanges = new ObservableCollection<string>(args.Exchanges.ToImmutableSortedSet());
         if (SelectedIndex == DefaultIndex)
         {
             SelectedIndex = Exchanges.IndexOf(DefaultExchange);
         }
-        if (e.RemovedExchanges is null)
+        if (args.RemovedExchanges is null)
         {
             return;
         }
-        RemoveWatchedExchanges(e.RemovedExchanges);
+        var useCase = new RemoveExchanges(m_ExchangeManager);
+        useCase.Execute(args.RemovedExchanges);
     }
 
     protected override void Dispose(bool disposing)
@@ -93,31 +103,43 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         {
             return;
         }
+        m_ExchangeManager?.Dispose();
     }
 
-    private void LoadExchange()
+    private Exchange LoadExchange()
     {
         var loadUseCase = new LoadExchangeUseCase(KucoinExchangeRepository.SingletonInstance);
         var callBack = new ExchangeLoadedCallback();
-        callBack.OnLoaded += AddExchange;
+        callBack.OnLoaded += m_ExchangeManager.UpdateExchange;
         var request = new ExchangeRequest(Exchanges[SelectedIndex], callBack);
-        var exchange = loadUseCase.Execute(request);
-        AddExchange(exchange);
+        return loadUseCase.Execute(request);
+
     }
 
-    private void AddExchange(Exchange exchange)
+    private void OnOpenExchangesChanged(object _, ExchangeChangedArgs args)
     {
-        Dispatcher.CurrentDispatcher.Invoke(() =>
+        if (args.Action == ChangeAction.Undefined)
         {
-            OpenedExchanges.Add(exchange);
-        });
+            throw new ArgumentException("undefined action", nameof(args.Action));
+        }
+        InvokeOnDispatcher(SetOpenedExchanges, args);
+
     }
 
-    private void RemoveWatchedExchanges(IReadOnlyCollection<string> toBeRemoved)
+    private void SelectExchange(Exchange exchange)
     {
-        ArgumentNullException.ThrowIfNull(toBeRemoved);
-        var stillOpen = OpenedExchanges.Where(ex => toBeRemoved.Contains(ex.Identifier.Symbol));
-        OpenedExchanges = new(stillOpen);
-        
+        var useCase = new SelectExchange(m_ExchangeManager);
+        useCase.Execute(exchange);
+    }
+
+    private void SetOpenedExchanges(ExchangeChangedArgs args)
+    {
+        OpenedExchanges = new ObservableCollection<Exchange>(args.OpenedExchanges);
+        if ((args.Action & ChangeAction.Seleced) != ChangeAction.Seleced)
+        {
+            return;
+        }
+
+        SelectedIndex = args.CurrentIndex;
     }
 }
