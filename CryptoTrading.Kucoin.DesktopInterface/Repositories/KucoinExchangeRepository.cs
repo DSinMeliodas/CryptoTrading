@@ -1,12 +1,11 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
 
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Repositories;
 
@@ -40,8 +39,7 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
     private async Task<Exchange> RegisterAndLoadInitial(ExchangeIdentifier exchangeId, IExchangeUpdateCallBack callBack)
     {
         var callBacks = new List<IExchangeUpdateCallBack> { callBack };
-        var subscription = m_KucoinTickUpdater.Subscribe(new ExchangeTickUpdaterTarget(exchangeId),
-                                                            new ExchangeUpdateCallBack(callBacks));
+        var subscription = m_KucoinTickUpdater.Subscribe(new ExchangeAutoUpdate(exchangeId), new ExchangeUpdate(callBacks));
         m_RegisteredCallBacks[exchangeId] = callBacks;
         m_UpdateSubscriptions[exchangeId] = subscription;
         return await m_KucoinTickUpdater.BaseUpdater.GetExchange(exchangeId);
