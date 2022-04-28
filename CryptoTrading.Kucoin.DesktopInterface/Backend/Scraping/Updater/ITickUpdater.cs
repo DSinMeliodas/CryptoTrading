@@ -18,7 +18,7 @@ public interface ITickUpdater : IDisposable
 
     bool Stop();
 
-    TickUpdateSubscription Subscribe(ITickerTarget target, ISubscriptionCallBack subscriptionCallBack);
+    TickUpdateSubscription Subscribe(DataTargetIdentifier target, ISubscriptionCallBack subscriptionCallBack);
 
     void Unsubscribe(TickUpdateSubscription subscription);
 }

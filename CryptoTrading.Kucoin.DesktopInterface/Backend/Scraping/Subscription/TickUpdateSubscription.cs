@@ -1,27 +1,23 @@
 ﻿
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
 using System;
 using System.Threading.Tasks;
-using CryptoExchange.Net.Objects;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 
 public sealed class TickUpdateSubscription : IEquatable<TickUpdateSubscription>
 {
-    private readonly Type m_Type;
-
     public ISubscriptionCallBack CallBack { get; }
     public Guid Id { get; }
-    public ITickerTarget Target { get; }
+    public DataTargetIdentifier Target { get; }
 
-    public TickUpdateSubscription(Guid id, ITickerTarget target, ISubscriptionCallBack callBack, Type type)
+    public TickUpdateSubscription(Guid id, DataTargetIdentifier target, ISubscriptionCallBack callBack)
     {
         CallBack = callBack;
         Id = id;
         Target = target;
-        m_Type = type;
     }
 
     public override int GetHashCode() => Id.GetHashCode();
@@ -40,21 +36,9 @@ public sealed class TickUpdateSubscription : IEquatable<TickUpdateSubscription>
         return Equals(obj as TickUpdateSubscription);
     }
 
-    public async void NotifyTickUpdate(Task<CallResult<object>> updateResult)
+    public async Task NotifyTickUpdate(Task<object> updateResult)
     {
         var args = await TickUpdateEventArgs.CreateFromAsync(this, updateResult);
         CallBack.OnTickUpdate(args);
-    }
-
-    public bool TryCastSubscribed<T>(object subscribedValue, out T castedValue)
-    {
-        if (typeof(T).IsAssignableFrom(m_Type))
-        {
-            castedValue = (T)subscribedValue;
-            return true;
-        }
-
-        castedValue = default;
-        return false;
     }
 }

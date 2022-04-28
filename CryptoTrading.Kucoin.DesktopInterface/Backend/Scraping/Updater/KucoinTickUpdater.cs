@@ -1,20 +1,17 @@
-﻿
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Querying;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 
 using Kucoin.Net.Clients;
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
 internal sealed class KucoinTickUpdater : ITickUpdater
 {
-    private readonly ConcurrentDictionary<TickUpdateSubscription, bool> m_Subscriptions = new();
-    private readonly KucoinClient m_Client = new();
+    private readonly HashSet<TickUpdateSubscription> m_Subscriptions = new();
     private readonly Timer m_Ticker;
 
     private TimeSpan m_UpdateInterval = ITickUpdater.DefaultUpdateInterval;
@@ -52,8 +49,6 @@ internal sealed class KucoinTickUpdater : ITickUpdater
 
     public void Dispose()
     {
-        m_Ticker?.Dispose();
-        m_Client?.Dispose();
     }
 
     public bool Start()
@@ -78,13 +73,16 @@ internal sealed class KucoinTickUpdater : ITickUpdater
         return m_Ticker.Change(Timeout.InfiniteTimeSpan, UpdateInterval);
     }
 
-    public TickUpdateSubscription Subscribe(ITickerTarget target, ISubscriptionCallBack callBack)
+    public TickUpdateSubscription Subscribe(DataTargetIdentifier target, ISubscriptionCallBack callBack)
     {
-        ArgumentNullException.ThrowIfNull(target);
+        if (target is DataTargetIdentifier.Undefined)
+        {
+            throw new ArgumentException($"target is undefined", nameof(target));
+        }
         ArgumentNullException.ThrowIfNull(callBack);
         var id = Guid.NewGuid();
-        var subscription = new TickUpdateSubscription(id, target, callBack, target.ResultType);
-        if (!m_Subscriptions.TryAdd(subscription, false))
+        var subscription = new TickUpdateSubscription(id, target, callBack);
+        if (!m_Subscriptions.Add(subscription))
         {
             throw new ArgumentException("target already subscribed");
         }
@@ -95,11 +93,18 @@ internal sealed class KucoinTickUpdater : ITickUpdater
     public void Unsubscribe(TickUpdateSubscription subscription)
     {
         ArgumentNullException.ThrowIfNull(subscription);
-        _ = m_Subscriptions.TryRemove(subscription, out _);
+        if (!m_Subscriptions.Remove(subscription))
+        {
+            throw new KeyNotFoundException($"subscription {subscription.Id} was not found");
+        }
     }
 
-    private void OnTick(object _)
+    private async void OnTick(object _)
     {
-        //TODO Change To using Of ExchangeUpdater
+        foreach (var subscription in m_Subscriptions)
+        {
+            var callResult = BaseUpdater.MakeUpdateCall(subscription.Target);
+            await subscription.NotifyTickUpdate(callResult);
+        }
     }
 }
