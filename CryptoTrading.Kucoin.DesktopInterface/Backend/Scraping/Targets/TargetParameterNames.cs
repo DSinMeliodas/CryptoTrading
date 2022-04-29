@@ -2,5 +2,6 @@
 
 internal static class TargetParameterNames
 {
-    public const string ExchangeSymbolParameter = "ExchangeSymbols";
+    public const string ExchangeSymbolParameter = "ExchangeSymbol";
+    public const string ExchangeSymbolIntervalParameter = "ExchangeSymbolInterval";
 }

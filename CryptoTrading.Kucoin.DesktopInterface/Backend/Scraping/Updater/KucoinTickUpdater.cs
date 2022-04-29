@@ -4,6 +4,7 @@ using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Util;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
@@ -14,7 +15,7 @@ internal sealed class KucoinTickUpdater : ITickUpdater
 
     private TimeSpan m_UpdateInterval = ITickUpdater.DefaultUpdateInterval;
 
-    public IExchangeUpdater BaseUpdater { get; }
+    public IExchangeUpdater BaseUpdater { get; } = new KucoinUpdater();
 
     public TimeSpan UpdateInterval
     {
@@ -74,11 +75,8 @@ internal sealed class KucoinTickUpdater : ITickUpdater
     public TickUpdateSubscription Subscribe(IExchangeTarget target, ISubscriptionCallBack callBack)
     {
         ArgumentNullException.ThrowIfNull(target);
-        if (target.DataTargetIdentifier is DataTargetIdentifier.Undefined)
-        {
-            throw new ArgumentException("target is undefined", nameof(target));
-        }
         ArgumentNullException.ThrowIfNull(callBack);
+        ThrowHelper.ThrowIfUndefined(target.DataTargetIdentifier);
         var id = Guid.NewGuid();
         var subscription = new TickUpdateSubscription(id, target, callBack);
         if (!m_Subscriptions.Add(subscription))
