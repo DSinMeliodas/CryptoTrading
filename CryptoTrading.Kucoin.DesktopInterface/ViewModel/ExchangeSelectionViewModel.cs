@@ -9,6 +9,7 @@ using CryptoTrading.Kucoin.DesktopInterface.UseCases.Requests;
 
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Linq;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
@@ -82,6 +83,8 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         var callBack = new LoadAvailableExchangesCallBack();
         callBack.OnSymbolsChanged += UpdateExchanges;
         Exchanges = new ObservableCollection<string>(useCase.Execute(callBack));
+        var index = Exchanges.IndexOf(DefaultExchange);
+        SelectedIndex = index == -1 && Exchanges.Any() ? 0 : index;
     }
 
     private void UpdateExchanges(object? _, ExchangeSymbolsChangedEventArgs args)
@@ -141,7 +144,7 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         {
             return;
         }
-
-        SelectedIndex = args.CurrentIndex;
+        //TODO SelectTab
+        //SelectedIndex = args.CurrentIndex;
     }
 }
