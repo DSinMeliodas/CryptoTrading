@@ -117,6 +117,7 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
         {
             _ = m_KucoinTickUpdater.Start();
         }
+        m_Exchanges.Add(exchangeId, result);
         return result;
     }
 
