@@ -5,11 +5,11 @@ using CryptoTrading.Kucoin.DesktopInterface.UseCases.Requests;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.UseCases;
 
-internal sealed class LoadExchangeUseCase : IQueryUseCase<IExchangeRequest, Exchange>
+internal sealed class LoadExchange : IQueryUseCase<IExchangeRequest, Exchange>
 {
     private readonly IExchangeRepository m_ExchangeRepository;
 
-    public LoadExchangeUseCase(IExchangeRepository exchangeRepository)
+    public LoadExchange(IExchangeRepository exchangeRepository)
     {
         m_ExchangeRepository = exchangeRepository;
     }

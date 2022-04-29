@@ -1,4 +1,5 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
+﻿using System;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
@@ -15,6 +16,7 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
     private static KucoinExchangeRepository? s_SingletonInstance;
     public static KucoinExchangeRepository SingletonInstance => s_SingletonInstance ??= new KucoinExchangeRepository();
 
+    private TickUpdateSubscription? m_ExchangeSymbolsSubscription;
     private readonly Dictionary<ExchangeIdentifier, Exchange> m_Exchanges = new ();
     private readonly Dictionary<ExchangeIdentifier, List<IExchangeUpdateCallBack>> m_RegisteredCallBacks = new();
     private readonly Dictionary<ExchangeIdentifier, TickUpdateSubscription> m_UpdateSubscriptions = new ();
@@ -28,12 +30,33 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
     public void Dispose()
     {
         _ = m_Lock.WaitOne();
+        if (m_ExchangeSymbolsSubscription is not null)
+        {
+            m_KucoinTickUpdater.Unsubscribe(m_ExchangeSymbolsSubscription);
+        }
         m_KucoinTickUpdater?.Dispose();
         m_Lock?.Dispose();
     }
 
+    public async Task<IReadOnlyList<string>> GetAvailableExchanges(IExchangeSymbolsUpdateCallBack callBack)
+    {
+        ArgumentNullException.ThrowIfNull(callBack);
+        _ = m_Lock.WaitOne();
+        if (m_ExchangeSymbolsSubscription is not null)
+        {
+            _ = m_Lock.Set();
+            return await Task.FromException<IReadOnlyList<string>>(new NotSupportedException("already subscribed to the exchanges"));
+        }
+        var result = await m_KucoinTickUpdater.BaseUpdater.GetExchangeSymbols();
+        m_ExchangeSymbolsSubscription = m_KucoinTickUpdater.Subscribe(new ExchangeSymbols(), new ExchangSymbolsUpdate(callBack));
+        _ = m_Lock.Set();
+        return result;
+    }
+
     public async Task<Exchange> GetExchange(ExchangeIdentifier exchangeId, IExchangeUpdateCallBack callBack)
     {
+        ArgumentNullException.ThrowIfNull(exchangeId);
+        ArgumentNullException.ThrowIfNull(callBack);
         _ = m_Lock.WaitOne();
         if (m_Exchanges.TryGetValue(exchangeId, out var exchange))
         {
@@ -45,8 +68,23 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
         return result;
     }
 
+    public Task DeleteExchangeSymbols()
+    {
+        _ = m_Lock.WaitOne();
+        if (m_ExchangeSymbolsSubscription is null)
+        {
+            _ = m_Lock.Set();
+            return Task.CompletedTask;
+        }
+        m_KucoinTickUpdater.Unsubscribe(m_ExchangeSymbolsSubscription);
+        m_ExchangeSymbolsSubscription = null;
+        _ = m_Lock.Set();
+        return Task.CompletedTask;
+    }
+
     public Task DeleteExchange(ExchangeIdentifier exchangeId)
     {
+        ArgumentNullException.ThrowIfNull(exchangeId);
         _ = m_Lock.WaitOne();
         if (!m_Exchanges.Remove(exchangeId))
         {

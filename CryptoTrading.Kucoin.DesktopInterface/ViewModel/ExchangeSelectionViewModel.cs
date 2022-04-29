@@ -9,6 +9,7 @@ using CryptoTrading.Kucoin.DesktopInterface.UseCases.Requests;
 
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
@@ -69,7 +70,7 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         }
     }
 
-    public ExchangeSelectionViewModel() : base(new ExchangesUpdate())
+    public ExchangeSelectionViewModel()
     {
         m_ExchangeManager.OnOpenedExchangesChanged += OnOpenExchangesChanged;
     }
@@ -77,11 +78,13 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
     protected override void Init()
     {
         base.Init();
-        var callBack = (ExchangesUpdate)Subscription.CallBack;
-        callBack.OnExchangesChanged += UpdateExchanges;
+        var useCase = new LoadAvailableExchanges(KucoinExchangeRepository.SingletonInstance);
+        var callBack = new LoadAvailableExchangesCallBack();
+        callBack.OnSymbolsChanged += UpdateExchanges;
+        Exchanges = new ObservableCollection<string>(useCase.Execute(callBack));
     }
 
-    private void UpdateExchanges(object? _, ExchangesChangedEventArgs args)
+    private void UpdateExchanges(object? _, ExchangeSymbolsChangedEventArgs args)
     {
         Exchanges = new ObservableCollection<string>(args.Exchanges.ToImmutableSortedSet());
         if (SelectedIndex == DefaultIndex)
@@ -108,7 +111,7 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 
     private Exchange LoadExchange()
     {
-        var loadUseCase = new LoadExchangeUseCase(KucoinExchangeRepository.SingletonInstance);
+        var loadUseCase = new LoadExchange(KucoinExchangeRepository.SingletonInstance);
         var callBack = new ExchangeLoadedCallback();
         callBack.OnLoaded += m_ExchangeManager.UpdateExchange;
         var request = new ExchangeRequest(Exchanges[SelectedIndex], callBack);
@@ -123,7 +126,6 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
             throw new ArgumentException("undefined action", nameof(args.Action));
         }
         InvokeOnDispatcher(SetOpenedExchanges, args);
-
     }
 
     private void SelectExchange(Exchange exchange)
