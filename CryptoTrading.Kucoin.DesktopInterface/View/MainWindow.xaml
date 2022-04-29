@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModel="clr-namespace:CryptoTrading.Kucoin.DesktopInterface.ViewModel"
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         mc:Ignorable="d"
         Title="Kucoin Desktop Interface"
         MinHeight="720"
@@ -40,9 +41,19 @@
                 <ColumnDefinition Name="Chart"/>
                 <ColumnDefinition Name="ChartOptions" MinWidth="100" MaxWidth="320"/>
             </Grid.ColumnDefinitions>
-            <TabControl 
-                ItemsSource="{Binding OpenedExchanges}"
-                ItemTemplate="{StaticResource ExchangeTemplate}">
+            <TabControl ItemsSource="{Binding OpenedExchanges}">
+                <TabControl.ItemTemplate>
+                    <DataTemplate>
+                        <Label Content="{Binding Identifier.Symbol}"/>
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+                <TabControl.ContentTemplate>
+                    <DataTemplate>
+                        <lvc:CartesianChart
+                            Series="{Binding CurrentSeries}"
+                            AxisX="{Binding CurrentXAxis}"/>
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
             </TabControl>
         </Grid>
         <Grid.DataContext>

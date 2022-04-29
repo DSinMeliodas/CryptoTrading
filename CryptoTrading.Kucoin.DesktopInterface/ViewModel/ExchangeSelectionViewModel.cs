@@ -10,7 +10,9 @@ using CryptoTrading.Kucoin.DesktopInterface.UseCases.Requests;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
+using LiveCharts.Wpf;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
@@ -24,6 +26,10 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
     private ObservableCollection<string> m_Exchanges;
     private ObservableCollection<Exchange> m_OpenedExchanges;
     private int m_SelectedIndex = DefaultIndex;
+
+    public CandleSeries[] CurrentSeries { get; private set; }
+
+    public Axis[] CurrentXAxis { get; set; }
 
     public ObservableCollection<string> Exchanges
     {

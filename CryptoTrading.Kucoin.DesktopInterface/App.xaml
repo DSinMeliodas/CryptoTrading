@@ -7,11 +7,5 @@
              xmlns:records="clr-namespace:CryptoTrading.Kucoin.DesktopInterface.Domain.Records"
              StartupUri="View/MainWindow.xaml">
     <Application.Resources>
-        <ResourceDictionary>
-            <DataTemplate x:Key="ExchangeTemplate" DataType="records:Exchange">
-                <TextBox Text="{Binding Identifier}"/>
-                <!--<wpf:CartesianChart XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"/>-->
-            </DataTemplate>
-        </ResourceDictionary>
     </Application.Resources>
 </Application>
