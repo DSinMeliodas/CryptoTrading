@@ -6,8 +6,10 @@ using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CryptoTrading.Kucoin.DesktopInterface.Adapters;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Repositories;
 
@@ -47,7 +49,8 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
             _ = m_Lock.Set();
             return await Task.FromException<IReadOnlyList<string>>(new NotSupportedException("already subscribed to the exchanges"));
         }
-        var result = await m_KucoinTickUpdater.BaseUpdater.GetExchangeSymbols();
+        var rawResult = await m_KucoinTickUpdater.BaseUpdater.GetExchangeSymbols();
+        var result = rawResult.Select(symbol => symbol.Symbol).ToList();
         m_ExchangeSymbolsSubscription = m_KucoinTickUpdater.Subscribe(new ExchangeSymbols(), new ExchangSymbolsUpdate(callBack));
         _ = m_Lock.Set();
         return result;

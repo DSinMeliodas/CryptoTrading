@@ -10,6 +10,7 @@ namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
 internal sealed class KucoinTickUpdater : ITickUpdater
 {
+    private readonly ManualResetEvent m_SubscriptionLock = new (true);
     private readonly HashSet<TickUpdateSubscription> m_Subscriptions = new();
     private readonly Timer m_Ticker;
 
@@ -79,10 +80,12 @@ internal sealed class KucoinTickUpdater : ITickUpdater
         ThrowHelper.ThrowIfUndefined(target.DataTargetIdentifier);
         var id = Guid.NewGuid();
         var subscription = new TickUpdateSubscription(id, target, callBack);
+        _ = m_SubscriptionLock.WaitOne();
         if (!m_Subscriptions.Add(subscription))
         {
             throw new ArgumentException("target already subscribed");
         }
+        _ = m_SubscriptionLock.Set();
         return subscription;
 
     }
@@ -90,18 +93,22 @@ internal sealed class KucoinTickUpdater : ITickUpdater
     public void Unsubscribe(TickUpdateSubscription subscription)
     {
         ArgumentNullException.ThrowIfNull(subscription);
+        _ = m_SubscriptionLock.WaitOne();
         if (!m_Subscriptions.Remove(subscription))
         {
             throw new KeyNotFoundException($"subscription {subscription.Id} was not found");
         }
+        _ = m_SubscriptionLock.Set();
     }
 
     private async void OnTick(object _)
     {
+        _ = m_SubscriptionLock.WaitOne();
         foreach (var subscription in m_Subscriptions)
         {
             var callResult = BaseUpdater.MakeUpdateCall(subscription.Target);
             await subscription.NotifyTickUpdate(callResult);
         }
+        _ = m_SubscriptionLock.Set();
     }
 }

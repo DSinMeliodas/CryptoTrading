@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Kucoin.Net.Objects.Models.Spot;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
@@ -29,15 +30,12 @@ internal sealed partial class KucoinUpdater : IExchangeUpdater
         m_Client?.Dispose();
     }
 
-    public Task<IReadOnlyList<string>> GetExchangeSymbols()
+    public Task<IReadOnlyList<KucoinSymbol>> GetExchangeSymbols()
     {
         var cts = new CancellationTokenSource(30000);
         var call = ExchangeApi.GetSymbolsAsync(ct: cts.Token).Result;
         ThrowHelper.ThrowIfCallError(call);
-        var result = call.Data;
-        var symbols = result.Select(symbol => symbol.Symbol).ToList();
-        symbols.Sort();
-        return Task.FromResult<IReadOnlyList<string>>(symbols);
+        return Task.FromResult<IReadOnlyList<KucoinSymbol>>(call.Data.ToList());
     }
 
     public Task<Exchange> GetExchange(ExchangeIdentifier exchangeId, KlineInterval interval = KlineInterval.ThirtyMinutes)
