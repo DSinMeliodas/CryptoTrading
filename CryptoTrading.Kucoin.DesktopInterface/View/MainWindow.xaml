@@ -21,7 +21,7 @@
     <Window.DataContext>
         <viewModel:MainViewModel/>
     </Window.DataContext>
-    <Grid>
+    <Grid Background="#131313">
         <Grid.RowDefinitions>
             <RowDefinition Name="HeadLine" MinHeight="100" MaxHeight="100"/>
             <RowDefinition Name="ChartArea"/>
@@ -50,7 +50,8 @@
                     Name="TabLabels"
                     ItemsSource="{Binding OpenedExchanges}"
                     SelectedIndex="{Binding SelectedOpenedIndex}"
-                    BorderThickness="0">
+                    BorderThickness="0"
+                    Background="#131313">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel IsItemsHost="True"/>
@@ -58,15 +59,18 @@
                     </ListBox.ItemsPanel>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Label Content="{Binding Identifier.Symbol}"/>
+                            <Label Content="{Binding Identifier.Symbol}" Foreground="#e5e5e5"/>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
                 <lvc:CartesianChart
                     Grid.Row="1"
-                    XAxes="{Binding CurrentXAxis}"
+                    XAxes="{Binding XAxis}"
+                    YAxes="{Binding YAxis}"
                     Series="{Binding CurrentSeries}"
-                    BorderThickness="1pt"/>
+                    BorderThickness="1pt"
+                    Foreground="#e5e5e5"
+                    DrawMargin="{Binding ChartMargin}"/>
             </Grid>
         </Grid>
         <Grid.DataContext>

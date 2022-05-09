@@ -15,8 +15,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.Linq;
 using System.Windows;
+using LiveChartsCore.Kernel.Drawing;
+using LiveChartsCore.Measure;
+using LiveChartsCore.SkiaSharpView.Drawing;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
@@ -24,18 +30,32 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 {
     private const int DefaultIndex = -1;
     private const string DefaultExchange = "BTC-USDT";
+    private readonly SKColor DefaultFontColor = SKColor.Parse("#e5e5e5");
 
     private readonly IExchangeManager m_ExchangeManager = new ExchangeManager();
 
-    private IEnumerable<ISeries> m_CurrentSeries;
+    private Margin m_ChartMargin = new(100);
+    private ObservableCollection<ISeries> m_CurrentSeries;
     private Visibility m_CurrentVisibility = Visibility.Hidden;
-    private Axis[] m_CurrentXAxis;
+    private Axis[] m_XAxis;
+    private Axis[] m_YAxis;
     private ObservableCollection<string> m_Exchanges;
     private ObservableCollection<Exchange> m_OpenedExchanges;
     private int m_SelectedIndex = DefaultIndex;
     private int m_SelectedOpenedIndex = DefaultIndex;
+    private bool m_SelectedOpenedIndexFromEvent;
 
-    public IEnumerable<ISeries> CurrentSeries
+    public Margin ChartMargin
+    {
+        get => m_ChartMargin;
+        set
+        {
+            m_ChartMargin = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public ObservableCollection<ISeries> CurrentSeries
     {
         get => m_CurrentSeries ??= CreateDefaultSeries();
         set
@@ -45,12 +65,12 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         }
     }
 
-    public Axis[] CurrentXAxis
+    public Visibility CurrentVisibility
     {
-        get => m_CurrentXAxis ??= CreateDefaultAxis();
+        get => m_CurrentVisibility;
         set
         {
-            m_CurrentXAxis = value;
+            m_CurrentVisibility = value;
             OnPropertyChanged();
         }
     }
@@ -94,9 +114,6 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
                 return;
             }
             SelectExchange(exchange);
-            // Lade Daten für gewählten exchange
-            // aus applikations sicht ist es eine query
-            // hier brauche ich keine UseCases die kommen aus dem Model
         }
     }
 
@@ -107,6 +124,15 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         {
             m_SelectedOpenedIndex = value;
             OnPropertyChanged();
+            if (m_SelectedOpenedIndexFromEvent)
+            {
+                return;
+            }
+            if (m_SelectedOpenedIndex < 0)
+            {
+                return;
+            }
+            m_ExchangeManager.SetOpenedAsCurrent(OpenedExchanges[SelectedOpenedIndex].Identifier);
         }
     }
 
@@ -119,13 +145,22 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
             OnPropertyChanged();
         }
     }
-
-    public Visibility CurrentVisibility
+    public Axis[] XAxis
     {
-        get => m_CurrentVisibility;
+        get => m_XAxis ??= CreateDefaultXAxis();
         set
         {
-            m_CurrentVisibility = value;
+            m_XAxis = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public Axis[] YAxis
+    {
+        get => m_YAxis ??=CreateDefaultXAxis();
+        set
+        {
+            m_YAxis = value;
             OnPropertyChanged();
         }
     }
@@ -197,35 +232,41 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 
     private void SetOpenedExchanges(ExchangeChangedArgs args)
     {
+        m_SelectedOpenedIndexFromEvent = true;
         CurrentVisibility = Visibility.Hidden;
         OpenedExchanges = new ObservableCollection<Exchange>(args.OpenedExchanges);
         if ((args.Action & ChangeAction.Seleced) != ChangeAction.Seleced)
         {
             return;
         }
+        //In order to prevent recursion we need to set this to true
+        m_SelectedOpenedIndexFromEvent = true;
         SelectedOpenedIndex = args.CurrentIndex;
-        CurrentSeries = new ObservableCollection<ISeries>()
-        {
-            new CandlesticksSeries<FinancialPoint>()
-            {
-                Values = new ObservableCollection<FinancialPoint>(OpenedExchanges[SelectedOpenedIndex].Course.Select(new ExchangeCandleConverter().ConvertFrom))
-            }
-        };
-
+        var openedCourse = OpenedExchanges[SelectedOpenedIndex].Course;
+        var financialPoints = openedCourse.Select(new FinancialCandleConverter().ConvertFrom);
+        CurrentSeries.Clear();
+        CurrentSeries.Add(new CandlesticksSeries<FinancialPoint> { Values = financialPoints });
+        UpdateYAxisName();
+        UpdateChartView();
+        m_SelectedOpenedIndexFromEvent = false;
     }
 
-    private IEnumerable<ISeries> CreateDefaultSeries()
+    private ObservableCollection<ISeries> CreateDefaultSeries()
     {
-        return new ObservableCollection<ISeries>()
+        return new()
         {
             new CandlesticksSeries<FinancialPoint>()
             {
-                Values = new ObservableCollection<FinancialPoint>()
+                Values = new ObservableCollection<FinancialPoint>(),
+            },
+            new LineSeries<decimal>()
+            {
+                Values = new ObservableCollection<decimal>()
             }
         };
     }
 
-    private Axis[] CreateDefaultAxis()
+    private Axis[] CreateDefaultXAxis()
     {
         return new Axis[]
         {
@@ -235,8 +276,36 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
                 Labeler = value => new DateTime((long)value).ToString("hh:mm dd.MM.yyyy"),
                 UnitWidth = TimeSpan.FromMinutes(1).Ticks,
                 Name = "Zeit",
-                ShowSeparatorLines = true
+                ShowSeparatorLines = true,
+                NamePaint = new SolidColorPaint{Color = DefaultFontColor},
+                LabelsPaint = new SolidColorPaint{Color = DefaultFontColor}
             }
+        };
+    }
+
+    private Axis[] CreateDefaultYAxis()
+    {
+        return new Axis[]
+        {
+            new ()
+            {
+                ShowSeparatorLines = true,
+                NamePaint = new SolidColorPaint{Color = DefaultFontColor},
+                LabelsPaint = new SolidColorPaint{Color = DefaultFontColor}
+            }
+        };
+    }
+
+    private void UpdateChartView() => ChartMargin = ChartMargin;
+
+    private void UpdateYAxisName()
+    {
+        YAxis[0] = new()
+        {
+            Name = OpenedExchanges[SelectedOpenedIndex].Identifier.BaseCurrency,
+            ShowSeparatorLines = true,
+            NamePaint = new SolidColorPaint { Color = DefaultFontColor },
+            LabelsPaint = new SolidColorPaint { Color = DefaultFontColor }
         };
     }
 }
