@@ -6,6 +6,7 @@ using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Util;
@@ -20,12 +21,17 @@ internal static class ThrowHelper
     }
     
     [StackTraceHidden]
-    public static void ThrowIfCallError(CallResult call)
+    public static bool ThrowIfCallError(CallResult call, params int[] errorCodeExceptions)
     {
-        if (!call)
+        if (call)
         {
-            throw new Exception(call.Error!.Message);
+            return false;
         }
+        if (errorCodeExceptions.Contains(call.Error!.Code!.Value))
+        {
+            return true;
+        }
+        throw new Exception(call.Error!.Message);
     }
 
     public static void ThrowIfUndefined(DataTargetIdentifier identifier, [CallerArgumentExpression("identifier")] string? expression = null)

@@ -1,4 +1,5 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Adapters;
+﻿using System;
+using CryptoTrading.Kucoin.DesktopInterface.Adapters;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Util;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
@@ -34,14 +35,17 @@ internal sealed partial class KucoinUpdater : IExchangeUpdater
     {
         var cts = new CancellationTokenSource(30000);
         var call = ExchangeApi.GetSymbolsAsync(ct: cts.Token).Result;
-        ThrowHelper.ThrowIfCallError(call);
+        if (ThrowHelper.ThrowIfCallError(call, 429000))
+        {
+            return Task.FromResult<IReadOnlyList<KucoinSymbol>>(Array.Empty<KucoinSymbol>());
+        }
         return Task.FromResult<IReadOnlyList<KucoinSymbol>>(call.Data.ToList());
     }
 
     public Task<Exchange> GetExchange(ExchangeIdentifier exchangeId, KlineInterval interval = KlineInterval.ThirtyMinutes)
     {
         var call = ExchangeApi.GetKlinesAsync(exchangeId.Symbol, interval).Result;
-        ThrowHelper.ThrowIfCallError(call);
+        _ = ThrowHelper.ThrowIfCallError(call);
         var result = call.Data;
         var exchangeAdapter = new KucoinExchangeAdapter(exchangeId, interval);
         return Task.FromResult(exchangeAdapter.ConvertFrom(result));

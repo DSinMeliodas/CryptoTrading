@@ -1,4 +1,4 @@
-﻿using System;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Adapters;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Management;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
@@ -7,12 +7,16 @@ using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
 using CryptoTrading.Kucoin.DesktopInterface.UseCases;
 using CryptoTrading.Kucoin.DesktopInterface.UseCases.Requests;
 
+using LiveChartsCore;
+using LiveChartsCore.Defaults;
+using LiveChartsCore.SkiaSharpView;
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
-using LiveCharts.Wpf;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
@@ -23,17 +27,37 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 
     private readonly IExchangeManager m_ExchangeManager = new ExchangeManager();
 
+    private IEnumerable<ISeries> m_CurrentSeries;
+    private Visibility m_CurrentVisibility = Visibility.Hidden;
+    private Axis[] m_CurrentXAxis;
     private ObservableCollection<string> m_Exchanges;
     private ObservableCollection<Exchange> m_OpenedExchanges;
     private int m_SelectedIndex = DefaultIndex;
+    private int m_SelectedOpenedIndex = DefaultIndex;
 
-    public CandleSeries[] CurrentSeries { get; private set; }
+    public IEnumerable<ISeries> CurrentSeries
+    {
+        get => m_CurrentSeries ??= CreateDefaultSeries();
+        set
+        {
+            m_CurrentSeries = value;
+            OnPropertyChanged();
+        }
+    }
 
-    public Axis[] CurrentXAxis { get; set; }
+    public Axis[] CurrentXAxis
+    {
+        get => m_CurrentXAxis ??= CreateDefaultAxis();
+        set
+        {
+            m_CurrentXAxis = value;
+            OnPropertyChanged();
+        }
+    }
 
     public ObservableCollection<string> Exchanges
     {
-        get => m_Exchanges??= new();
+        get => m_Exchanges ??= new();
         private set
         {
             m_Exchanges = value;
@@ -59,11 +83,30 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
                 return;
             }
 
-            var exchange = LoadExchange();
+            Exchange exchange;
+            try
+            {
+                exchange = LoadExchange();
+            }
+            catch
+            {
+                //catching call exceptions in order to prevent crashs silently
+                return;
+            }
             SelectExchange(exchange);
             // Lade Daten für gewählten exchange
             // aus applikations sicht ist es eine query
             // hier brauche ich keine UseCases die kommen aus dem Model
+        }
+    }
+
+    public int SelectedOpenedIndex
+    {
+        get => m_SelectedOpenedIndex;
+        set
+        {
+            m_SelectedOpenedIndex = value;
+            OnPropertyChanged();
         }
     }
 
@@ -73,6 +116,16 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         private set
         {
             m_OpenedExchanges = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public Visibility CurrentVisibility
+    {
+        get => m_CurrentVisibility;
+        set
+        {
+            m_CurrentVisibility = value;
             OnPropertyChanged();
         }
     }
@@ -125,7 +178,6 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         callBack.OnLoaded += m_ExchangeManager.UpdateExchange;
         var request = new ExchangeRequest(Exchanges[SelectedIndex], callBack);
         return loadUseCase.Execute(request);
-
     }
 
     private void OnOpenExchangesChanged(object _, ExchangeChangedArgs args)
@@ -145,12 +197,46 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 
     private void SetOpenedExchanges(ExchangeChangedArgs args)
     {
+        CurrentVisibility = Visibility.Hidden;
         OpenedExchanges = new ObservableCollection<Exchange>(args.OpenedExchanges);
         if ((args.Action & ChangeAction.Seleced) != ChangeAction.Seleced)
         {
             return;
         }
-        //TODO SelectTab
-        //SelectedIndex = args.CurrentIndex;
+        SelectedOpenedIndex = args.CurrentIndex;
+        CurrentSeries = new ObservableCollection<ISeries>()
+        {
+            new CandlesticksSeries<FinancialPoint>()
+            {
+                Values = new ObservableCollection<FinancialPoint>(OpenedExchanges[SelectedOpenedIndex].Course.Select(new ExchangeCandleConverter().ConvertFrom))
+            }
+        };
+
+    }
+
+    private IEnumerable<ISeries> CreateDefaultSeries()
+    {
+        return new ObservableCollection<ISeries>()
+        {
+            new CandlesticksSeries<FinancialPoint>()
+            {
+                Values = new ObservableCollection<FinancialPoint>()
+            }
+        };
+    }
+
+    private Axis[] CreateDefaultAxis()
+    {
+        return new Axis[]
+        {
+            new ()
+            {
+                LabelsRotation = 15,
+                Labeler = value => new DateTime((long)value).ToString("hh:mm dd.MM.yyyy"),
+                UnitWidth = TimeSpan.FromMinutes(1).Ticks,
+                Name = "Zeit",
+                ShowSeparatorLines = true
+            }
+        };
     }
 }

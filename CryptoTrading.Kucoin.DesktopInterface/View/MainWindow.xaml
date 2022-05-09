@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModel="clr-namespace:CryptoTrading.Kucoin.DesktopInterface.ViewModel"
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
-        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+        xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
         mc:Ignorable="d"
         Title="Kucoin Desktop Interface"
         MinHeight="720"
@@ -41,20 +41,33 @@
                 <ColumnDefinition Name="Chart"/>
                 <ColumnDefinition Name="ChartOptions" MinWidth="100" MaxWidth="320"/>
             </Grid.ColumnDefinitions>
-            <TabControl ItemsSource="{Binding OpenedExchanges}">
-                <TabControl.ItemTemplate>
-                    <DataTemplate>
-                        <Label Content="{Binding Identifier.Symbol}"/>
-                    </DataTemplate>
-                </TabControl.ItemTemplate>
-                <TabControl.ContentTemplate>
-                    <DataTemplate>
-                        <lvc:CartesianChart
-                            Series="{Binding CurrentSeries}"
-                            AxisX="{Binding CurrentXAxis}"/>
-                    </DataTemplate>
-                </TabControl.ContentTemplate>
-            </TabControl>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Name="TabLabelsRow" Height="Auto"/>
+                    <RowDefinition Name="ChartRow" Height="*"/>
+                </Grid.RowDefinitions>
+                <ListBox
+                    Name="TabLabels"
+                    ItemsSource="{Binding OpenedExchanges}"
+                    SelectedIndex="{Binding SelectedOpenedIndex}"
+                    BorderThickness="0">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel IsItemsHost="True"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Label Content="{Binding Identifier.Symbol}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <lvc:CartesianChart
+                    Grid.Row="1"
+                    XAxes="{Binding CurrentXAxis}"
+                    Series="{Binding CurrentSeries}"
+                    BorderThickness="1pt"/>
+            </Grid>
         </Grid>
         <Grid.DataContext>
             <viewModel:ExchangeSelectionViewModel/>
