@@ -3,7 +3,9 @@ using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Util;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
@@ -106,9 +108,20 @@ internal sealed class KucoinTickUpdater : ITickUpdater
         _ = m_SubscriptionLock.WaitOne();
         foreach (var subscription in m_Subscriptions)
         {
+            await Task.Delay(MapDelay(subscription.Target.DataTargetIdentifier));
             var callResult = BaseUpdater.MakeUpdateCall(subscription.Target);
             await subscription.NotifyTickUpdate(callResult);
         }
         _ = m_SubscriptionLock.Set();
+    }
+
+    private TimeSpan MapDelay(DataTargetIdentifier dataTargetIdentifier)
+    {
+        return dataTargetIdentifier switch
+        {
+            DataTargetIdentifier.ExchangeSymbols => TimeSpan.FromMilliseconds(400),
+            DataTargetIdentifier.Exchange => TimeSpan.FromSeconds(15),
+            _ => TimeSpan.Zero
+        };
     }
 }

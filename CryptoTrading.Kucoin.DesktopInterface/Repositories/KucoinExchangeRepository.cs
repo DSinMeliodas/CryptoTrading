@@ -1,32 +1,34 @@
-﻿using System;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CryptoTrading.Kucoin.DesktopInterface.Adapters;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Repositories;
 
 internal sealed class KucoinExchangeRepository : IExchangeRepository
 {
     private static KucoinExchangeRepository? s_SingletonInstance;
-    public static KucoinExchangeRepository SingletonInstance => s_SingletonInstance ??= new KucoinExchangeRepository();
+    public static KucoinExchangeRepository SingletonInstance => s_SingletonInstance ??= new KucoinExchangeRepository(KucoinUpdateIntervalSettings.Instance);
 
     private TickUpdateSubscription? m_ExchangeSymbolsSubscription;
-    private readonly Dictionary<ExchangeIdentifier, Exchange> m_Exchanges = new ();
+    private readonly Dictionary<ExchangeIdentifier, Exchange> m_Exchanges = new();
     private readonly Dictionary<ExchangeIdentifier, List<IExchangeUpdateCallBack>> m_RegisteredCallBacks = new();
-    private readonly Dictionary<ExchangeIdentifier, TickUpdateSubscription> m_UpdateSubscriptions = new ();
+    private readonly Dictionary<ExchangeIdentifier, TickUpdateSubscription> m_UpdateSubscriptions = new();
     private readonly ITickUpdater m_KucoinTickUpdater = new KucoinTickUpdater();
-    private readonly ManualResetEvent m_Lock = new (true);
+    private readonly ManualResetEvent m_Lock = new(true);
+    private readonly IUpdateIntervalSettings m_UpdateTickSettings;
 
-    private KucoinExchangeRepository()
+    private KucoinExchangeRepository(IUpdateIntervalSettings updateTickSettings)
     {
+        m_UpdateTickSettings = updateTickSettings;
+        m_UpdateTickSettings.OnUpdateIntervalChanged += SetUpdateInterval;
     }
 
     public void Dispose()
@@ -36,6 +38,7 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
         {
             m_KucoinTickUpdater.Unsubscribe(m_ExchangeSymbolsSubscription);
         }
+        m_UpdateTickSettings.OnUpdateIntervalChanged -= SetUpdateInterval;
         m_KucoinTickUpdater?.Dispose();
         m_Lock?.Dispose();
     }
@@ -66,7 +69,7 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
             m_RegisteredCallBacks[exchangeId].Add(callBack);
             return exchange;
         }
-        var result =  await RegisterAndLoadInitial(exchangeId, callBack);
+        var result = await RegisterAndLoadInitial(exchangeId, callBack);
         _ = m_Lock.Set();
         return result;
     }
@@ -119,6 +122,11 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
         }
         m_Exchanges.Add(exchangeId, result);
         return result;
+    }
+
+    private void SetUpdateInterval(object? _, TimeSpan newInterval)
+    {
+        m_KucoinTickUpdater.UpdateInterval = newInterval;
     }
 
     public static void Close()
