@@ -1,6 +1,7 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Adapters;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Management;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
@@ -9,20 +10,17 @@ using CryptoTrading.Kucoin.DesktopInterface.UseCases.Requests;
 
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
+using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+
+using SkiaSharp;
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Configuration;
 using System.Linq;
 using System.Windows;
-using LiveChartsCore.Kernel.Drawing;
-using LiveChartsCore.Measure;
-using LiveChartsCore.SkiaSharpView.Drawing;
-using LiveChartsCore.SkiaSharpView.Painting;
-using SkiaSharp;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
@@ -41,9 +39,10 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
     private Axis[] m_YAxis;
     private ObservableCollection<string> m_Exchanges;
     private ObservableCollection<Exchange> m_OpenedExchanges;
-    private int m_SelectedIndex = DefaultIndex;
+    private int m_SelectedExchangeIndex = DefaultIndex;
     private int m_SelectedOpenedIndex = DefaultIndex;
     private bool m_SelectedOpenedIndexFromEvent;
+    private int m_SelectedUpdateIntervalIndex;
 
     public Margin ChartMargin
     {
@@ -85,19 +84,29 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         }
     }
 
-    public int SelectedIndex
+    public ObservableCollection<Exchange> OpenedExchanges
     {
-        get => m_SelectedIndex;
+        get => m_OpenedExchanges ??= new();
+        private set
+        {
+            m_OpenedExchanges = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public int SelectedExchangeIndex
+    {
+        get => m_SelectedExchangeIndex;
         set
         {
-            m_SelectedIndex = value;
+            m_SelectedExchangeIndex = value;
             OnPropertyChanged();
-            if (m_SelectedIndex < 0)
+            if (m_SelectedExchangeIndex < 0)
             {
                 return;
             }
 
-            var selectedExchange = Exchanges[m_SelectedIndex];
+            var selectedExchange = Exchanges[m_SelectedExchangeIndex];
             if (string.IsNullOrWhiteSpace(selectedExchange))
             {
                 return;
@@ -136,15 +145,17 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         }
     }
 
-    public ObservableCollection<Exchange> OpenedExchanges
+    public int SelectedUpdateIntervalIndex
     {
-        get => m_OpenedExchanges ??= new();
-        private set
+        get => m_SelectedUpdateIntervalIndex;
+        set
         {
-            m_OpenedExchanges = value;
+            m_SelectedUpdateIntervalIndex = value;
             OnPropertyChanged();
+            ChangeUpdateInterval();
         }
     }
+
     public Axis[] XAxis
     {
         get => m_XAxis ??= CreateDefaultXAxis();
@@ -157,13 +168,15 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 
     public Axis[] YAxis
     {
-        get => m_YAxis ??=CreateDefaultXAxis();
+        get => m_YAxis ??=CreateDefaultYAxis();
         set
         {
             m_YAxis = value;
             OnPropertyChanged();
         }
     }
+
+    public UpdateInterval[] UpdateIntervals { get; } = UpdateInterval.AllIntervals;
 
     public ExchangeSelectionViewModel()
     {
@@ -178,15 +191,15 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         callBack.OnSymbolsChanged += UpdateExchanges;
         Exchanges = new ObservableCollection<string>(useCase.Execute(callBack));
         var index = Exchanges.IndexOf(DefaultExchange);
-        SelectedIndex = index == -1 && Exchanges.Any() ? 0 : index;
+        SelectedExchangeIndex = index == -1 && Exchanges.Any() ? 0 : index;
     }
 
     private void UpdateExchanges(object? _, ExchangeSymbolsChangedEventArgs args)
     {
         Exchanges = new ObservableCollection<string>(args.Exchanges.ToImmutableSortedSet());
-        if (SelectedIndex == DefaultIndex)
+        if (SelectedExchangeIndex == DefaultIndex)
         {
-            SelectedIndex = Exchanges.IndexOf(DefaultExchange);
+            SelectedExchangeIndex = Exchanges.IndexOf(DefaultExchange);
         }
         if (args.RemovedExchanges is null)
         {
@@ -211,7 +224,7 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         var loadUseCase = new LoadExchange(KucoinExchangeRepository.SingletonInstance);
         var callBack = new ExchangeLoadedCallback();
         callBack.OnLoaded += m_ExchangeManager.UpdateExchange;
-        var request = new ExchangeRequest(Exchanges[SelectedIndex], callBack);
+        var request = new ExchangeRequest(Exchanges[SelectedExchangeIndex], callBack);
         return loadUseCase.Execute(request);
     }
 
@@ -264,6 +277,12 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
                 Values = new ObservableCollection<decimal>()
             }
         };
+    }
+
+    private void ChangeUpdateInterval()
+    {
+        var useCase = new ChangeUpdateInterval(KucoinUpdateIntervalSettings.Instance);
+        useCase.Execute(SelectedUpdateIntervalIndex);
     }
 
     private Axis[] CreateDefaultXAxis()
