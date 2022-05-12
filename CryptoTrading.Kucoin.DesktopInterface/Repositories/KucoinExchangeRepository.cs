@@ -29,6 +29,22 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
     {
         m_UpdateTickSettings = updateTickSettings;
         m_UpdateTickSettings.OnUpdateIntervalChanged += SetUpdateInterval;
+        m_UpdateTickSettings.OnAutoUpdatedChanged += SetAutoUpdated;
+    }
+
+    private void SetAutoUpdated(object? sender, bool e)
+    {
+        if (m_KucoinTickUpdater.Running && e || !m_KucoinTickUpdater.Running && !e)
+        {
+            return;
+        }
+
+        if (e)
+        {
+            _ = m_KucoinTickUpdater.Start();
+            return;
+        }
+        _ = m_KucoinTickUpdater.Stop();
     }
 
     public void Dispose()
@@ -116,7 +132,7 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
         m_RegisteredCallBacks[exchangeId] = callBacks;
         m_UpdateSubscriptions[exchangeId] = subscription;
         var result = await m_KucoinTickUpdater.BaseUpdater.GetExchange(exchangeId);
-        if (!m_KucoinTickUpdater.Running)
+        if (m_UpdateTickSettings.IsAutoUpdated && !m_KucoinTickUpdater.Running)
         {
             _ = m_KucoinTickUpdater.Start();
         }

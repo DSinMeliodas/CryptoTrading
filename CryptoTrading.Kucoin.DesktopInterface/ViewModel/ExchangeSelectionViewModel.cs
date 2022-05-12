@@ -21,6 +21,8 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
+using CryptoTrading.Kucoin.DesktopInterface.Commands;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
@@ -28,6 +30,8 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 {
     private const int DefaultIndex = -1;
     private const string DefaultExchange = "BTC-USDT";
+    private const string AutoUpdatedOnText = "Auto Update On";
+    private const string AutoUpdatedOffText = "Auto Update Off";
     private readonly SKColor DefaultFontColor = SKColor.Parse("#e5e5e5");
 
     private readonly IExchangeManager m_ExchangeManager = new ExchangeManager();
@@ -43,6 +47,19 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
     private int m_SelectedOpenedIndex = DefaultIndex;
     private bool m_SelectedOpenedIndexFromEvent;
     private int m_SelectedUpdateIntervalIndex;
+    private string m_AutoUpdateButtonText;
+
+    public string AutoUpdateButtonText
+    {
+        get => m_AutoUpdateButtonText ??= UpdateSettings.IsAutoUpdated ? AutoUpdatedOnText : AutoUpdatedOffText;
+        set
+        {
+            m_AutoUpdateButtonText = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public ICommand AutoUpdateCommand { get; } = new SetAutoUpdateCommand();
 
     public Margin ChartMargin
     {
@@ -156,6 +173,8 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         }
     }
 
+    public IUpdateIntervalSettings UpdateSettings => KucoinUpdateIntervalSettings.Instance;
+
     public Axis[] XAxis
     {
         get => m_XAxis ??= CreateDefaultXAxis();
@@ -176,11 +195,12 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         }
     }
 
-    public UpdateInterval[] UpdateIntervals { get; } = UpdateInterval.AllIntervals;
+    public UpdateInterval[] UpdateIntervals => UpdateInterval.AllIntervals;
 
     public ExchangeSelectionViewModel()
     {
         m_ExchangeManager.OnOpenedExchangesChanged += OnOpenExchangesChanged;
+        UpdateSettings.OnAutoUpdatedChanged += OnAutoUpdatedChanged;
     }
 
     protected override void Init()
@@ -192,6 +212,8 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         Exchanges = new ObservableCollection<string>(useCase.Execute(callBack));
         var index = Exchanges.IndexOf(DefaultExchange);
         SelectedExchangeIndex = index == -1 && Exchanges.Any() ? 0 : index;
+        var contextBasedUseCaseCommand = AutoUpdateCommand as ContextBasedUseCaseCommand<IUpdateIntervalSettings>;
+        contextBasedUseCaseCommand?.NotifyCanExecuteChanged();
     }
 
     private void UpdateExchanges(object? _, ExchangeSymbolsChangedEventArgs args)
@@ -228,7 +250,12 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         return loadUseCase.Execute(request);
     }
 
-    private void OnOpenExchangesChanged(object _, ExchangeChangedArgs args)
+    private void OnAutoUpdatedChanged(object? _, bool e)
+    {
+        AutoUpdateButtonText = e ? AutoUpdatedOnText : AutoUpdatedOffText;
+    }
+
+    private void OnOpenExchangesChanged(object? _, ExchangeChangedArgs args)
     {
         if (args.Action == ChangeAction.Undefined)
         {
@@ -281,7 +308,7 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
 
     private void ChangeUpdateInterval()
     {
-        var useCase = new ChangeUpdateInterval(KucoinUpdateIntervalSettings.Instance);
+        var useCase = new ChangeUpdateInterval(UpdateSettings);
         useCase.Execute(SelectedUpdateIntervalIndex);
     }
 

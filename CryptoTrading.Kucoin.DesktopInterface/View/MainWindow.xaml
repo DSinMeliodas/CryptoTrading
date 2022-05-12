@@ -37,12 +37,16 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Name="SelectedCourse" Width="Auto"/>
                     <ColumnDefinition Name="Spacing" Width="*"/>
-                    <ColumnDefinition Name="AutoUpdateOnOff" Width="50"/>
-                    <ColumnDefinition Name="UpdateIntervals" Width="auto"/>
+                    <ColumnDefinition Name="AutoUpdateOnOff" Width="150"/>
+                    <ColumnDefinition Name="UpdateIntervals" Width="50"/>
                 </Grid.ColumnDefinitions>
                 <ComboBox Grid.Column="0" ItemsSource="{Binding Exchanges}"
                           SelectedIndex="{Binding SelectedExchangeIndex}"/>
-                <Button Grid.Column="2"/>
+                <Label Grid.Column="1" MinWidth="1000"/>
+                <Button Grid.Column="1" Command="{Binding AutoUpdateCommand}"
+                        CommandParameter="{Binding UpdateSettings}"
+                        Content="{Binding AutoUpdateButtonText}"
+                        Grid.ColumnSpan="2" HorizontalAlignment="Right" Width="auto" />
                 <ComboBox Grid.Column="3" ItemsSource="{Binding UpdateIntervals}"
                           SelectedIndex="{Binding SelectedUpdateIntervalIndex}">
                     <ComboBox.ItemTemplate>

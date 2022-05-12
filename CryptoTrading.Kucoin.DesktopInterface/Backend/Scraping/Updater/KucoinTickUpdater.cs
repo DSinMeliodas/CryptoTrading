@@ -1,12 +1,11 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
+using CryptoTrading.Kucoin.DesktopInterface.Backend.Util;
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Util;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
