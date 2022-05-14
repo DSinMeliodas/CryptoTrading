@@ -34,7 +34,7 @@ internal sealed class ExchangeSelectionViewModel : DelaysedInitialisationViewMod
     private const string DefaultExchange = "BTC-USDT";
     private const string AutoUpdatedOnText = "Auto Update On";
     private const string AutoUpdatedOffText = "Auto Update Off";
-    private readonly SKColor DefaultFontColor = SKColor.Parse("#e5e5e5");
+    private static readonly SKColor DefaultFontColor = SKColor.Parse("#e5e5e5");
 
     private readonly IExchangeManager m_ExchangeManager = new ExchangeManager();
 
@@ -235,7 +235,6 @@ internal sealed class ExchangeSelectionViewModel : DelaysedInitialisationViewMod
 
     protected override void Dispose(bool disposing)
     {
-        base.Dispose(disposing);
         if (!disposing)
         {
             return;
