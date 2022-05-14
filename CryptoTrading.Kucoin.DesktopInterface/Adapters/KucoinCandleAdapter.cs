@@ -8,13 +8,12 @@ internal sealed class KucoinCandleAdapter : IAdapter<KucoinKline, Candle>
 {
     public Candle ConvertFrom(KucoinKline value)
     {
-        return new (
-            value.OpenTime,
-            value.OpenPrice,
-            value.ClosePrice,
-            value.HighPrice,
-            value.LowPrice,
-            value.Volume,
-            value.QuoteVolume);
+        var factory = new Candle.CandleFactory();
+        factory.SetOpenTime(value.OpenTime);
+        factory.SetHighLow(value.HighPrice, value.LowPrice);
+        factory.SetOpen(value.OpenPrice);
+        factory.SetClose(value.ClosePrice);
+        factory.SetVolume(value.Volume, value.QuoteVolume);
+        return factory.Create();
     }
 }
