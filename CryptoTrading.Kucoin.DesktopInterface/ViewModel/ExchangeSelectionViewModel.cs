@@ -285,7 +285,7 @@ internal sealed class ExchangeSelectionViewModel : DelaysedInitialisationViewMod
         m_SelectedOpenedIndexFromEvent = true;
         SelectedOpenedIndex = args.CurrentIndex;
         var openedCourse = OpenedExchanges[SelectedOpenedIndex].History.Course;
-        var financialPoints = openedCourse.Select(new FinancialCandleConverter().ConvertFrom);
+        var financialPoints = openedCourse.Select(new FinancialCandleAdapter().ConvertFrom);
         CurrentSeries.Clear();
         CurrentSeries.Add(new CandlesticksSeries<FinancialPoint> { Values = financialPoints });
         UpdateYAxisName();
