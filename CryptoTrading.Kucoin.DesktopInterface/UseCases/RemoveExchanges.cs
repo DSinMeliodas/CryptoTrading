@@ -1,7 +1,6 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Management;
-using CryptoTrading.Kucoin.DesktopInterface.Domain.Factories;
-
 using System.Collections.Generic;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.UseCases;
 
@@ -18,7 +17,7 @@ internal class RemoveExchanges : IContextBasedUseCase<IReadOnlyList<string>>
     {
         foreach (var removedExchange in context)
         {
-            var exchangeFactory = new ExchangeSymbolFactory(removedExchange);
+            var exchangeFactory = new ExchangeSymbol.ExchangeSymbolFactory(removedExchange);
             var exchangeId = exchangeFactory.Create();
             if (exchangeId.Equals(m_ExchangeManager.CurrentExchangeSymbol))
             {
