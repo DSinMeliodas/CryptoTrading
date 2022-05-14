@@ -1,4 +1,5 @@
 ﻿using System;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Util;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 
@@ -18,101 +19,44 @@ public partial record Candle
 
         public void SetHighLow(decimal high, decimal low)
         {
-            if (high <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(high), high,
-                    $"{nameof(high)} cannot be lower than or equal to 0");
-            }
-
-            if (low <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(low), low,
-                    $"{nameof(low)} cannot be lower than or equal to 0");
-            }
-
-            if (high < low)
-            {
-                throw new ArgumentOutOfRangeException(nameof(high), high,
-                    $"{nameof(high)} cannot be lower than {nameof(low)} which was {low}");
-            }
-
+            ThrowHelper.ThrowIfLowerThanOrEqual0(high);
+            ThrowHelper.ThrowIfLowerThanOrEqual0(low);
+            ThrowHelper.ThrowIfLowerThan(low, high);
             m_High = high;
             m_Low = low;
         }
 
         public void SetOpen(decimal open)
         {
-            if (m_Low is null || m_High is null)
-            {
-                throw new InvalidOperationException($"cannot set {nameof(open)} until both low and high are set");
-            }
-
-            if (open <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(open), open,
-                    $"{nameof(open)} cannot be lower than or equal to 0");
-            }
-
-            if (open < m_Low)
-            {
-                throw new ArgumentOutOfRangeException(nameof(open), open, $"{nameof(open)} cannot be lower than low");
-            }
-
-            if (open > m_High)
-            {
-                throw new ArgumentOutOfRangeException(nameof(open), open, $"{nameof(open)} cannot be higher than high");
-            }
-
+            ThrowHelper.ThrowIfHighOrLowNotSet(m_High, m_Low, open);
+            ThrowHelper.ThrowIfLowerThanOrEqual0(open);
+            ThrowHelper.ThrowIfLowerThan(open, m_Low.Value, limitExpression: "low");
+            ThrowHelper.ThrowIfHigherThan(open, m_High.Value, limitExpression: "high");
             m_Open = open;
         }
 
         public void SetClose(decimal close)
         {
-            if (m_Low is null || m_High is null)
-            {
-                throw new InvalidOperationException($"cannot set {nameof(close)} until both low and high are set");
-            }
-
-            if (close <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(close), close,
-                    $"{nameof(close)} cannot be lower than or equal to 0");
-            }
-
-            if (close < m_Low)
-            {
-                throw new ArgumentOutOfRangeException(nameof(close), close,
-                    $"{nameof(close)} cannot be lower than low");
-            }
-
-            if (close > m_High)
-            {
-                throw new ArgumentOutOfRangeException(nameof(close), close,
-                    $"{nameof(close)} cannot be higher than high");
-            }
-
+            ThrowHelper.ThrowIfHighOrLowNotSet(m_High, m_Low, close);
+            ThrowHelper.ThrowIfLowerThanOrEqual0(close);
+            ThrowHelper.ThrowIfLowerThan(close, m_Low.Value, limitExpression: "low");
+            ThrowHelper.ThrowIfHigherThan(close, m_High.Value, limitExpression: "high");
             m_Close = close;
         }
 
         public void SetVolume(decimal baseVolume, decimal foreignVolume)
         {
-            if (m_Low is null || m_High is null)
-            {
-                throw new InvalidOperationException($"cannot set set volume until both low and high are set");
-            }
-
+            ThrowHelper.ThrowIfHighOrLowNotSet(m_High, m_Low, "volume");
             if (baseVolume != 0 && foreignVolume == 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(foreignVolume), foreignVolume,
                     $"{nameof(foreignVolume)} cannot be 0 if {nameof(baseVolume)} is not 0");
             }
-
             if (baseVolume == 0 && foreignVolume != 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(baseVolume), baseVolume,
                     $"{nameof(baseVolume)} cannot be 0 if {nameof(baseVolume)} is not 0");
             }
-
             m_BaseVolume = baseVolume;
             m_ForeignVolume = foreignVolume;
         }

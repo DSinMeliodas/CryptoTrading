@@ -34,6 +34,7 @@ internal static class ThrowHelper
         throw new Exception(call.Error!.Message);
     }
 
+    [StackTraceHidden]
     public static void ThrowIfUndefined(DataTargetIdentifier identifier, [CallerArgumentExpression("identifier")] string? expression = null)
     {
         if (identifier == DataTargetIdentifier.Undefined)
