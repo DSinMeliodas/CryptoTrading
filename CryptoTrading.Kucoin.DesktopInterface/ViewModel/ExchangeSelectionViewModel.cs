@@ -28,7 +28,7 @@ using System.Windows.Input;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
-internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
+internal sealed class ExchangeSelectionViewModel : DelaysedInitialisationViewModel
 {
     private const int DefaultIndex = -1;
     private const string DefaultExchange = "BTC-USDT";
