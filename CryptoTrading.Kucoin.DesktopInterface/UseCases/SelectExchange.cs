@@ -1,4 +1,5 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Management;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Entities;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using CryptoTrading.Kucoin.DesktopInterface.Specifications;
 
@@ -7,8 +8,8 @@ namespace CryptoTrading.Kucoin.DesktopInterface.UseCases;
 internal sealed class SelectExchange : IContextBasedUseCase<Exchange>
 {
     private readonly IExchangeManager m_Manager;
-    private readonly ISpecification<ExchangeIdentifier> m_ExchangeIsCurrent;
-    private readonly ISpecification<ExchangeIdentifier> m_ExchangeIsOpen;
+    private readonly ISpecification<ExchangeSymbol> m_ExchangeIsCurrent;
+    private readonly ISpecification<ExchangeSymbol> m_ExchangeIsOpen;
 
     public SelectExchange(IExchangeManager manager)
     {
@@ -19,13 +20,13 @@ internal sealed class SelectExchange : IContextBasedUseCase<Exchange>
 
     public void Execute(Exchange exchange)
     {
-        if (m_ExchangeIsCurrent.IsMet(exchange.Identifier))
+        if (m_ExchangeIsCurrent.IsMet(exchange.Symbol))
         {
             return;
         }
-        if (m_ExchangeIsOpen.IsMet(exchange.Identifier))
+        if (m_ExchangeIsOpen.IsMet(exchange.Symbol))
         {
-            m_Manager.SetOpenedAsCurrent(exchange.Identifier);
+            m_Manager.SetOpenedAsCurrent(exchange.Symbol);
             return;
         }
 

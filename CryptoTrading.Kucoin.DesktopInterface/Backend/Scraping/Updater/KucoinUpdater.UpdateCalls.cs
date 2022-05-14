@@ -15,7 +15,7 @@ internal partial class KucoinUpdater
 
     private async Task<object> UpdateExchangeCall(IReadOnlyDictionary<string, object> parameters)
     {
-        var symbol = (ExchangeIdentifier)parameters[TargetParameterNames.ExchangeSymbolParameter];
+        var symbol = (ExchangeSymbol)parameters[TargetParameterNames.ExchangeSymbolParameter];
         var klineInterval = (KlineInterval)parameters[TargetParameterNames.ExchangeSymbolIntervalParameter];
         return await GetExchange(symbol, klineInterval);
     }

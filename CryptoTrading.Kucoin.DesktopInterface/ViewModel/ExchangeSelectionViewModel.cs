@@ -2,6 +2,8 @@
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Management;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
+using CryptoTrading.Kucoin.DesktopInterface.Commands;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Entities;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
@@ -22,7 +24,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using CryptoTrading.Kucoin.DesktopInterface.Commands;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
@@ -158,7 +159,7 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
             {
                 return;
             }
-            m_ExchangeManager.SetOpenedAsCurrent(OpenedExchanges[SelectedOpenedIndex].Identifier);
+            m_ExchangeManager.SetOpenedAsCurrent(OpenedExchanges[SelectedOpenedIndex].Symbol);
         }
     }
 
@@ -282,7 +283,7 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         //In order to prevent recursion we need to set this to true
         m_SelectedOpenedIndexFromEvent = true;
         SelectedOpenedIndex = args.CurrentIndex;
-        var openedCourse = OpenedExchanges[SelectedOpenedIndex].Course;
+        var openedCourse = OpenedExchanges[SelectedOpenedIndex].History.Course;
         var financialPoints = openedCourse.Select(new FinancialCandleConverter().ConvertFrom);
         CurrentSeries.Clear();
         CurrentSeries.Add(new CandlesticksSeries<FinancialPoint> { Values = financialPoints });
@@ -348,7 +349,7 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
     {
         YAxis[0] = new()
         {
-            Name = OpenedExchanges[SelectedOpenedIndex].Identifier.BaseCurrency,
+            Name = OpenedExchanges[SelectedOpenedIndex].Symbol.BaseCurrency,
             ShowSeparatorLines = true,
             NamePaint = new SolidColorPaint { Color = DefaultFontColor },
             LabelsPaint = new SolidColorPaint { Color = DefaultFontColor }

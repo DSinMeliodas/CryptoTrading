@@ -3,7 +3,7 @@ using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Specifications;
 
-internal sealed class ExchangeIsCurrent : ISpecification<ExchangeIdentifier>
+internal sealed class ExchangeIsCurrent : ISpecification<ExchangeSymbol>
 {
     private readonly IExchangeManager m_Manager;
 
@@ -12,9 +12,9 @@ internal sealed class ExchangeIsCurrent : ISpecification<ExchangeIdentifier>
         m_Manager = manager;
     }
 
-    public bool IsMet(ExchangeIdentifier target)
+    public bool IsMet(ExchangeSymbol target)
     {
-        var currentExchange = m_Manager.CurrentExchangeIdentifier;
+        var currentExchange = m_Manager.CurrentExchangeSymbol;
         return target.Equals(currentExchange);
     }
 }

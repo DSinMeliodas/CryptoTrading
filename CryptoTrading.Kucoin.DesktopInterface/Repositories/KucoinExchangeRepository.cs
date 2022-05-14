@@ -1,6 +1,7 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Entities;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
 
@@ -18,9 +19,9 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
     public static KucoinExchangeRepository SingletonInstance => s_SingletonInstance ??= new KucoinExchangeRepository(KucoinUpdateIntervalSettings.Instance);
 
     private TickUpdateSubscription? m_ExchangeSymbolsSubscription;
-    private readonly Dictionary<ExchangeIdentifier, Exchange> m_Exchanges = new();
-    private readonly Dictionary<ExchangeIdentifier, List<IExchangeUpdateCallBack>> m_RegisteredCallBacks = new();
-    private readonly Dictionary<ExchangeIdentifier, TickUpdateSubscription> m_UpdateSubscriptions = new();
+    private readonly Dictionary<ExchangeSymbol, Exchange> m_Exchanges = new();
+    private readonly Dictionary<ExchangeSymbol, List<IExchangeUpdateCallBack>> m_RegisteredCallBacks = new();
+    private readonly Dictionary<ExchangeSymbol, TickUpdateSubscription> m_UpdateSubscriptions = new();
     private readonly ITickUpdater m_KucoinTickUpdater = new KucoinTickUpdater();
     private readonly ManualResetEvent m_Lock = new(true);
     private readonly IUpdateIntervalSettings m_UpdateTickSettings;
@@ -75,7 +76,7 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
         return result;
     }
 
-    public async Task<Exchange> GetExchange(ExchangeIdentifier exchangeId, IExchangeUpdateCallBack callBack)
+    public async Task<Exchange> GetExchange(ExchangeSymbol exchangeId, IExchangeUpdateCallBack callBack)
     {
         ArgumentNullException.ThrowIfNull(exchangeId);
         ArgumentNullException.ThrowIfNull(callBack);
@@ -104,7 +105,7 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
         return Task.CompletedTask;
     }
 
-    public Task DeleteExchange(ExchangeIdentifier exchangeId)
+    public Task DeleteExchange(ExchangeSymbol exchangeId)
     {
         ArgumentNullException.ThrowIfNull(exchangeId);
         _ = m_Lock.WaitOne();
@@ -125,7 +126,7 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
         return Task.CompletedTask;
     }
 
-    private async Task<Exchange> RegisterAndLoadInitial(ExchangeIdentifier exchangeId, IExchangeUpdateCallBack callBack)
+    private async Task<Exchange> RegisterAndLoadInitial(ExchangeSymbol exchangeId, IExchangeUpdateCallBack callBack)
     {
         var callBacks = new List<IExchangeUpdateCallBack> { callBack };
         var subscription = m_KucoinTickUpdater.Subscribe(new ExchangeAutoUpdate(exchangeId), new ExchangeUpdate(callBacks));

@@ -1,5 +1,5 @@
 ﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
-using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Entities;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
 
 using System.Collections.Generic;

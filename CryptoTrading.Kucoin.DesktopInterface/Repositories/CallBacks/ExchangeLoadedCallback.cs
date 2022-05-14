@@ -1,4 +1,5 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
+﻿
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Entities;
 
 using System;
 

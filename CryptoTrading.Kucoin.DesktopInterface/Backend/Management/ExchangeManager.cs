@@ -1,8 +1,9 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Util;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Entities;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 
 using System;
 using System.Collections.Generic;
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Util;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Management;
 
@@ -10,26 +11,30 @@ internal sealed class ExchangeManager : IExchangeManager
 {
     public event ExchangeChanged OnOpenedExchangesChanged;
 
-    private readonly List<ExchangeIdentifier> m_OpendExchangeIdentifiers = new();
+    private readonly List<ExchangeSymbol> m_OpendExchangeSymbols = new();
     private readonly List<Exchange> m_OpendExchanges = new();
 
-    public ExchangeIdentifier? CurrentExchangeIdentifier { get; private set; }
+    public ExchangeSymbol? CurrentExchangeSymbol { get; private set; }
 
-    public int CurrentIndex => m_OpendExchangeIdentifiers.IndexOf(CurrentExchangeIdentifier);
+    public int CurrentIndex => m_OpendExchangeSymbols.IndexOf(CurrentExchangeSymbol);
 
     public void Dispose()
     {
         OnOpenedExchangesChanged = null;
     }
 
-    public bool IsOpen(ExchangeIdentifier target) => m_OpendExchangeIdentifiers.Contains(target);
+    public bool IsOpen(ExchangeSymbol target) => m_OpendExchangeSymbols.Contains(target);
 
     public void OpenExchange(Exchange exchange)
     {
         ArgumentNullException.ThrowIfNull(exchange);
-        m_OpendExchangeIdentifiers.Add(exchange.Identifier);
+        if (IsOpen(exchange.Symbol))
+        {
+            throw new ArgumentException($"{Exchange}")
+        }
+        m_OpendExchangeSymbols.Add(exchange.Symbol);
         m_OpendExchanges.Add(exchange);
-        CurrentExchangeIdentifier = exchange.Identifier;
+        CurrentExchangeSymbol = exchange.Symbol;
         InvokeEvent(ChangeAction.Added | ChangeAction.Seleced);
     }
 
@@ -37,21 +42,21 @@ internal sealed class ExchangeManager : IExchangeManager
     {
         var index = CurrentIndex;
         var removeIndex = index > 0 ? index - 1 : index + 1;
-        CurrentExchangeIdentifier = removeIndex >= m_OpendExchangeIdentifiers.Count
+        CurrentExchangeSymbol = removeIndex >= m_OpendExchangeSymbols.Count
                                     ? null 
-                                    : m_OpendExchangeIdentifiers[removeIndex];
+                                    : m_OpendExchangeSymbols[removeIndex];
         RemoveAtInternal(index);
         InvokeEvent(ChangeAction.Seleced | ChangeAction.Removed);
     }
 
-    public void CloseExchange(ExchangeIdentifier exchangeId)
+    public void CloseExchange(ExchangeSymbol exchangeId)
     {
         ArgumentNullException.ThrowIfNull(exchangeId);
-        if (exchangeId.Equals(CurrentExchangeIdentifier))
+        if (exchangeId.Equals(CurrentExchangeSymbol))
         {
             throw new ArgumentException($"cannot close current exchange using this method, consider using {nameof(CloseCurrentExchange)}");
         }
-        var index = m_OpendExchangeIdentifiers.IndexOf(exchangeId);
+        var index = m_OpendExchangeSymbols.IndexOf(exchangeId);
         if (index < 0)
         {
             ThrowHelper.ThrowExchangeNotOpen(exchangeId);
@@ -60,23 +65,23 @@ internal sealed class ExchangeManager : IExchangeManager
         InvokeEvent(ChangeAction.Removed);
     }
 
-    public void SetOpenedAsCurrent(ExchangeIdentifier exchangeId)
+    public void SetOpenedAsCurrent(ExchangeSymbol exchangeId)
     {
         ArgumentNullException.ThrowIfNull(exchangeId);
         if (!IsOpen(exchangeId))
         {
             ThrowHelper.ThrowExchangeNotOpen(exchangeId);
         }
-        CurrentExchangeIdentifier = exchangeId;
+        CurrentExchangeSymbol = exchangeId;
         InvokeEvent(ChangeAction.Seleced);
     }
 
     public void UpdateExchange(Exchange exchange)
     {
-        var index = m_OpendExchangeIdentifiers.IndexOf(exchange.Identifier);
+        var index = m_OpendExchangeSymbols.IndexOf(exchange.Symbol);
         if (index < 0)
         {
-            ThrowHelper.ThrowExchangeNotOpen(exchange.Identifier);
+            ThrowHelper.ThrowExchangeNotOpen(exchange.Symbol);
         }
         m_OpendExchanges[index] = exchange;
     }
@@ -90,6 +95,6 @@ internal sealed class ExchangeManager : IExchangeManager
     private void RemoveAtInternal(int index)
     {
         m_OpendExchanges.RemoveAt(index);
-        m_OpendExchangeIdentifiers.RemoveAt(index);
+        m_OpendExchangeSymbols.RemoveAt(index);
     }
 }

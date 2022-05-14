@@ -15,7 +15,7 @@ internal static class ThrowHelper
 {
     [DoesNotReturn]
     [StackTraceHidden]
-    public static void ThrowExchangeNotOpen(ExchangeIdentifier exchangeId)
+    public static void ThrowExchangeNotOpen(ExchangeSymbol exchangeId)
     {
         throw new ArgumentException($"exchange {exchangeId} is not open");
     }

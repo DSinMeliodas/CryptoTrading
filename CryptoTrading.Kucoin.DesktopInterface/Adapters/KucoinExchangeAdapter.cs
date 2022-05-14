@@ -1,4 +1,6 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Domain.Aggregates;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Entities;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 
 using Kucoin.Net.Enums;
 using Kucoin.Net.Objects.Models.Spot;
@@ -10,10 +12,10 @@ namespace CryptoTrading.Kucoin.DesktopInterface.Adapters;
 
 internal sealed class KucoinExchangeAdapter : IAdapter<IEnumerable<KucoinKline>, Exchange>
 {
-    private readonly ExchangeIdentifier m_Identifier;
+    private readonly ExchangeSymbol m_Identifier;
     private readonly KlineInterval m_Interval;
 
-    public KucoinExchangeAdapter(ExchangeIdentifier identifier, KlineInterval interval)
+    public KucoinExchangeAdapter(ExchangeSymbol identifier, KlineInterval interval)
     {
         m_Identifier = identifier;
         m_Interval = interval;
@@ -23,6 +25,6 @@ internal sealed class KucoinExchangeAdapter : IAdapter<IEnumerable<KucoinKline>,
     {
         var candleAdapter = new KucoinCandleAdapter();
         var candles = klines.Select(candleAdapter.ConvertFrom).ToArray();
-        return new Exchange(m_Identifier, m_Interval, candles);
+        return new Exchange(m_Identifier, new ExchangeHistory(m_Interval, candles));
     }
 }

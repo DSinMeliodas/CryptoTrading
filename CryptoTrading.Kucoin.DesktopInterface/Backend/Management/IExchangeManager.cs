@@ -1,4 +1,5 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Domain.Entities;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 
 using System;
 
@@ -11,19 +12,19 @@ public interface IExchangeManager : IDisposable
 {
     event ExchangeChanged OnOpenedExchangesChanged;
 
-    ExchangeIdentifier CurrentExchangeIdentifier { get; }
+    ExchangeSymbol CurrentExchangeSymbol { get; }
 
     int CurrentIndex { get; }
 
     void CloseCurrentExchange();
 
-    public void CloseExchange(ExchangeIdentifier exchangeId);
+    public void CloseExchange(ExchangeSymbol exchangeId);
 
-    bool IsOpen(ExchangeIdentifier target);
+    bool IsOpen(ExchangeSymbol target);
 
     void OpenExchange(Exchange exchange);
 
-    void SetOpenedAsCurrent(ExchangeIdentifier exchangeId);
+    void SetOpenedAsCurrent(ExchangeSymbol exchangeId);
 
     void UpdateExchange(Exchange obj);
 }

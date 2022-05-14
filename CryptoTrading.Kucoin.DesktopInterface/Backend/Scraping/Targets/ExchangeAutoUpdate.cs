@@ -11,7 +11,7 @@ internal class ExchangeAutoUpdate : IExchangeTarget
 
     public IReadOnlyDictionary<string, object> RequestParameters { get; }
 
-    public ExchangeAutoUpdate(ExchangeIdentifier exchangeId)
+    public ExchangeAutoUpdate(ExchangeSymbol exchangeId)
     {
         RequestParameters = new Dictionary<string, object>
         {

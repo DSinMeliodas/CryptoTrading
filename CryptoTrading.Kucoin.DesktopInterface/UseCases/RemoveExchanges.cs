@@ -18,9 +18,9 @@ internal class RemoveExchanges : IContextBasedUseCase<IReadOnlyList<string>>
     {
         foreach (var removedExchange in context)
         {
-            var exchangeFactory = new ExchangeIdentifierFactory(removedExchange);
+            var exchangeFactory = new ExchangeSymbolFactory(removedExchange);
             var exchangeId = exchangeFactory.Create();
-            if (exchangeId.Equals(m_ExchangeManager.CurrentExchangeIdentifier))
+            if (exchangeId.Equals(m_ExchangeManager.CurrentExchangeSymbol))
             {
                 m_ExchangeManager.CloseCurrentExchange();
                 continue;

@@ -1,18 +1,19 @@
-﻿using System;
-using CryptoTrading.Kucoin.DesktopInterface.Adapters;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Adapters;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Targets;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Util;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Entities;
 using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 
 using Kucoin.Net.Clients;
 using Kucoin.Net.Enums;
 using Kucoin.Net.Interfaces.Clients.SpotApi;
+using Kucoin.Net.Objects.Models.Spot;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Kucoin.Net.Objects.Models.Spot;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 
@@ -42,7 +43,7 @@ internal sealed partial class KucoinUpdater : IExchangeUpdater
         return Task.FromResult<IReadOnlyList<KucoinSymbol>>(call.Data.ToList());
     }
 
-    public Task<Exchange> GetExchange(ExchangeIdentifier exchangeId, KlineInterval interval = KlineInterval.ThirtyMinutes)
+    public Task<Exchange> GetExchange(ExchangeSymbol exchangeId, KlineInterval interval = KlineInterval.ThirtyMinutes)
     {
         var call = ExchangeApi.GetKlinesAsync(exchangeId.Symbol, interval).Result;
         _ = ThrowHelper.ThrowIfCallError(call);

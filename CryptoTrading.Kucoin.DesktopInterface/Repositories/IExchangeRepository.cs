@@ -1,4 +1,5 @@
-﻿using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Domain.Entities;
+using CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
 
 using System;
@@ -11,7 +12,7 @@ public interface IExchangeRepository : IDisposable
 {
     Task<IReadOnlyList<string>> GetAvailableExchanges(IExchangeSymbolsUpdateCallBack callBack);
 
-    Task<Exchange> GetExchange(ExchangeIdentifier exchangeId, IExchangeUpdateCallBack callBack);
+    Task<Exchange> GetExchange(ExchangeSymbol exchangeId, IExchangeUpdateCallBack callBack);
 
-    Task DeleteExchange(ExchangeIdentifier exchangeId);
+    Task DeleteExchange(ExchangeSymbol exchangeId);
 }
