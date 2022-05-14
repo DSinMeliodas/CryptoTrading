@@ -1,5 +1,4 @@
-﻿
-using CryptoTrading.Kucoin.DesktopInterface.Backend.Extensions;
+﻿using CryptoTrading.Kucoin.DesktopInterface.Backend.Extensions;
 using CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Updater;
 using CryptoTrading.Kucoin.DesktopInterface.Repositories.CallBacks;
 
@@ -10,12 +9,12 @@ using System.Linq;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Backend.Scraping.Subscription;
 
-internal sealed class ExchangSymbolsUpdate : SubscriptionCallBackBase
+internal sealed class ExchangeSymbolsUpdate : SubscriptionCallBackBase
 {
     private readonly IExchangeSymbolsUpdateCallBack m_CallBack;
     private readonly List<string> m_Exchanges = new();
 
-    public ExchangSymbolsUpdate(IExchangeSymbolsUpdateCallBack callBack)
+    public ExchangeSymbolsUpdate(IExchangeSymbolsUpdateCallBack callBack)
     {
         m_CallBack = callBack;
     }

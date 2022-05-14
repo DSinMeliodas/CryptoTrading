@@ -71,7 +71,7 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
         }
         var rawResult = await m_KucoinTickUpdater.BaseUpdater.GetExchangeSymbols();
         var result = rawResult.Select(symbol => symbol.Symbol).ToList();
-        m_ExchangeSymbolsSubscription = m_KucoinTickUpdater.Subscribe(new ExchangeSymbols(), new ExchangSymbolsUpdate(callBack));
+        m_ExchangeSymbolsSubscription = m_KucoinTickUpdater.Subscribe(new ExchangeSymbols(), new ExchangeSymbolsUpdate(callBack));
         _ = m_Lock.Set();
         return result;
     }
