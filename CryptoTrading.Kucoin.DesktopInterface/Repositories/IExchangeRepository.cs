@@ -12,7 +12,7 @@ public interface IExchangeRepository : IDisposable
 {
     Task<IReadOnlyList<string>> GetAvailableExchanges(IExchangeSymbolsUpdateCallBack callBack);
 
-    Task<Exchange> GetExchange(ExchangeSymbol exchangeId, IExchangeUpdateCallBack callBack);
+    Task<Exchange> GetExchange(ExchangeSymbol symbol, IExchangeUpdateCallBack callBack);
 
-    Task DeleteExchange(ExchangeSymbol exchangeId);
+    Task DeleteExchange(ExchangeSymbol symbol);
 }

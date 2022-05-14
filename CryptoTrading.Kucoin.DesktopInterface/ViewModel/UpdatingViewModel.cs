@@ -13,8 +13,4 @@ internal abstract class UpdatingViewModel : BaseViewModel
     protected virtual void Init()
     {
     }
-
-    protected override void Dispose(bool disposing)
-    {
-    }
 }

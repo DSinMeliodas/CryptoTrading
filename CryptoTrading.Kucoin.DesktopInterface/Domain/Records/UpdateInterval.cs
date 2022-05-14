@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.Domain.Records;
 
@@ -23,7 +24,7 @@ internal record UpdateInterval
     public static UpdateInterval Interval15Minute { get; } = new(Minute15, "15");
     public static UpdateInterval Interval30Minute { get; } = new(Minute30, "30m");
 
-    public static UpdateInterval[] AllIntervals { get; } =
+    public static IReadOnlyList<UpdateInterval> AllIntervals { get; } = new []
     {
         Interval30Seconds, Interval1Minute, Interval2Minute,
         Interval3Minute, Interval5Minute, Interval10Minute,

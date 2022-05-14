@@ -30,7 +30,7 @@ internal sealed class ExchangeManager : IExchangeManager
         ArgumentNullException.ThrowIfNull(exchange);
         if (IsOpen(exchange.Symbol))
         {
-            throw new ArgumentException($"{Exchange}")
+            throw new ArgumentException($"{exchange.Symbol} is already open");
         }
         m_OpendExchangeSymbols.Add(exchange.Symbol);
         m_OpendExchanges.Add(exchange);

@@ -19,6 +19,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -196,7 +197,7 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
         }
     }
 
-    public UpdateInterval[] UpdateIntervals => UpdateInterval.AllIntervals;
+    public IReadOnlyList<UpdateInterval> UpdateIntervals => UpdateInterval.AllIntervals;
 
     public ExchangeSelectionViewModel()
     {
@@ -207,7 +208,7 @@ internal sealed class ExchangeSelectionViewModel : UpdatingViewModel
     protected override void Init()
     {
         base.Init();
-        var useCase = new LoadAvailableExchanges(KucoinExchangeRepository.SingletonInstance);
+        var useCase = new LoadAvailableExchangeSymbols(KucoinExchangeRepository.SingletonInstance);
         var callBack = new LoadAvailableExchangesCallBack();
         callBack.OnSymbolsChanged += UpdateExchanges;
         Exchanges = new ObservableCollection<string>(useCase.Execute(callBack));

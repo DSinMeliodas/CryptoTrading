@@ -8,7 +8,7 @@ internal sealed class KucoinCandleAdapter : IAdapter<KucoinKline, Candle>
 {
     public Candle ConvertFrom(KucoinKline value)
     {
-        return new Candle(
+        return new (
             value.OpenTime,
             value.OpenPrice,
             value.ClosePrice,

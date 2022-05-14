@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.UseCases;
 
-public class LoadAvailableExchanges : IQueryUseCase<IExchangeSymbolsUpdateCallBack, IReadOnlyList<string>>
+public class LoadAvailableExchangeSymbols : IQueryUseCase<IExchangeSymbolsUpdateCallBack, IReadOnlyList<string>>
 {
     private readonly IExchangeRepository m_ExchangeRepository;
 
-    public LoadAvailableExchanges(IExchangeRepository exchangeRepository)
+    public LoadAvailableExchangeSymbols(IExchangeRepository exchangeRepository)
     {
         m_ExchangeRepository = exchangeRepository;
     }

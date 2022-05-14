@@ -76,17 +76,17 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
         return result;
     }
 
-    public async Task<Exchange> GetExchange(ExchangeSymbol exchangeId, IExchangeUpdateCallBack callBack)
+    public async Task<Exchange> GetExchange(ExchangeSymbol symbol, IExchangeUpdateCallBack callBack)
     {
-        ArgumentNullException.ThrowIfNull(exchangeId);
+        ArgumentNullException.ThrowIfNull(symbol);
         ArgumentNullException.ThrowIfNull(callBack);
         _ = m_Lock.WaitOne();
-        if (m_Exchanges.TryGetValue(exchangeId, out var exchange))
+        if (m_Exchanges.TryGetValue(symbol, out var exchange))
         {
-            m_RegisteredCallBacks[exchangeId].Add(callBack);
+            m_RegisteredCallBacks[symbol].Add(callBack);
             return exchange;
         }
-        var result = await RegisterAndLoadInitial(exchangeId, callBack);
+        var result = await RegisterAndLoadInitial(symbol, callBack);
         _ = m_Lock.Set();
         return result;
     }
@@ -105,18 +105,18 @@ internal sealed class KucoinExchangeRepository : IExchangeRepository
         return Task.CompletedTask;
     }
 
-    public Task DeleteExchange(ExchangeSymbol exchangeId)
+    public Task DeleteExchange(ExchangeSymbol symbol)
     {
-        ArgumentNullException.ThrowIfNull(exchangeId);
+        ArgumentNullException.ThrowIfNull(symbol);
         _ = m_Lock.WaitOne();
-        if (!m_Exchanges.Remove(exchangeId))
+        if (!m_Exchanges.Remove(symbol))
         {
             return Task.CompletedTask;
         }
 
-        _ = m_Exchanges.Remove(exchangeId);
-        _ = m_UpdateSubscriptions.Remove(exchangeId, out var subscription);
-        _ = m_RegisteredCallBacks.Remove(exchangeId);
+        _ = m_Exchanges.Remove(symbol);
+        _ = m_UpdateSubscriptions.Remove(symbol, out var subscription);
+        _ = m_RegisteredCallBacks.Remove(symbol);
         m_KucoinTickUpdater.Unsubscribe(subscription);
         if (m_Exchanges.Count == 0 && m_KucoinTickUpdater.Running)
         {
