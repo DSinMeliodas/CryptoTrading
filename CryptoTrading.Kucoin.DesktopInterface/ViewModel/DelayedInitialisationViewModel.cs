@@ -3,9 +3,9 @@ using System.Windows.Threading;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
-internal abstract class DelaysedInitialisationViewModel : BaseViewModel
+internal abstract class DelayedInitialisationViewModel : BaseViewModel
 {
-    protected DelaysedInitialisationViewModel()
+    protected DelayedInitialisationViewModel()
     {
         _ = Dispatcher.CurrentDispatcher.InvokeAsync(Init, DispatcherPriority.Loaded);
     }

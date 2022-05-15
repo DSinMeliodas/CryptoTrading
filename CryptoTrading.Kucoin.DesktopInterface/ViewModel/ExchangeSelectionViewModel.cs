@@ -28,7 +28,7 @@ using System.Windows.Input;
 
 namespace CryptoTrading.Kucoin.DesktopInterface.ViewModel;
 
-internal sealed class ExchangeSelectionViewModel : DelaysedInitialisationViewModel
+internal sealed class ExchangeSelectionViewModel : DelayedInitialisationViewModel
 {
     private const int DefaultIndex = -1;
     private const string DefaultExchange = "BTC-USDT";
@@ -38,6 +38,7 @@ internal sealed class ExchangeSelectionViewModel : DelaysedInitialisationViewMod
 
     private readonly IExchangeManager m_ExchangeManager = new ExchangeManager();
 
+    private string m_AutoUpdateButtonText;
     private Margin m_ChartMargin = new(100);
     private ObservableCollection<ISeries> m_CurrentSeries;
     private Visibility m_CurrentVisibility = Visibility.Hidden;
@@ -49,7 +50,6 @@ internal sealed class ExchangeSelectionViewModel : DelaysedInitialisationViewMod
     private int m_SelectedOpenedIndex = DefaultIndex;
     private bool m_SelectedOpenedIndexFromEvent;
     private int m_SelectedUpdateIntervalIndex;
-    private string m_AutoUpdateButtonText;
 
     public string AutoUpdateButtonText
     {
@@ -175,6 +175,8 @@ internal sealed class ExchangeSelectionViewModel : DelaysedInitialisationViewMod
         }
     }
 
+    public IReadOnlyList<UpdateInterval> UpdateIntervals => UpdateInterval.AllIntervals;
+
     public IUpdateIntervalSettings UpdateSettings => KucoinUpdateIntervalSettings.Instance;
 
     public Axis[] XAxis
@@ -189,15 +191,13 @@ internal sealed class ExchangeSelectionViewModel : DelaysedInitialisationViewMod
 
     public Axis[] YAxis
     {
-        get => m_YAxis ??=CreateDefaultYAxis();
+        get => m_YAxis ??= CreateDefaultYAxis();
         set
         {
             m_YAxis = value;
             OnPropertyChanged();
         }
     }
-
-    public IReadOnlyList<UpdateInterval> UpdateIntervals => UpdateInterval.AllIntervals;
 
     public ExchangeSelectionViewModel()
     {
