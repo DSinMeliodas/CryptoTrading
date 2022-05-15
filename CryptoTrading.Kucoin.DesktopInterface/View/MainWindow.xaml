@@ -1,12 +1,103 @@
-﻿<Window x:Class="CryptoTrading.Kucoin.DesktopInterface.MainWindow"
+﻿<Window x:Class="CryptoTrading.Kucoin.DesktopInterface.View.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:CryptoTrading.Kucoin.DesktopInterface"
+        xmlns:viewModel="clr-namespace:CryptoTrading.Kucoin.DesktopInterface.ViewModel"
+        xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
+        Title="Kucoin Desktop Interface"
+        MinHeight="720"
+        MinWidth="1280"
+        Height="720"
+        Width="1280">
+    <b:Interaction.Triggers>
+        <b:EventTrigger EventName="Closing">
+            <b:InvokeCommandAction Command="{Binding OnShutDown}"/>
+        </b:EventTrigger>
+        <b:EventTrigger EventName="Loaded">
+            <b:InvokeCommandAction Command="{Binding OnStart}"/>
+        </b:EventTrigger>
+    </b:Interaction.Triggers>
+    <Window.DataContext>
+        <viewModel:MainViewModel/>
+    </Window.DataContext>
+    <Grid Background="#131313">
+        <Grid.RowDefinitions>
+            <RowDefinition Name="HeadLine" MinHeight="100" MaxHeight="100"/>
+            <RowDefinition Name="ChartArea"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Name="DropDown" Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Name="HeaderRow" Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Name="SelectedCourse" Width="Auto"/>
+                    <ColumnDefinition Name="Spacing" Width="*"/>
+                    <ColumnDefinition Name="AutoUpdateOnOff" Width="Auto"/>
+                    <ColumnDefinition Name="UpdateIntervals" Width="50"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0" ItemsSource="{Binding Exchanges}"
+                          SelectedIndex="{Binding SelectedExchangeIndex}"/>
+                <Label Grid.Column="1" HorizontalContentAlignment="Stretch"/>
+                <Button Grid.Column="1" Command="{Binding AutoUpdateCommand}"
+                        CommandParameter="{Binding UpdateSettings}"
+                        Content="{Binding AutoUpdateButtonText}"
+                        Grid.ColumnSpan="2" HorizontalAlignment="Right" Width="Auto" />
+                <ComboBox Grid.Column="3" ItemsSource="{Binding UpdateIntervals}"
+                          SelectedIndex="{Binding SelectedUpdateIntervalIndex}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <Label Content="{Binding Name}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Name="Chart"/>
+                <ColumnDefinition Name="ChartOptions" MinWidth="100" MaxWidth="320"/>
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Name="TabLabelsRow" Height="Auto"/>
+                    <RowDefinition Name="ChartRow" Height="*"/>
+                </Grid.RowDefinitions>
+                <ListBox
+                    Name="TabLabels"
+                    ItemsSource="{Binding OpenedExchanges}"
+                    SelectedIndex="{Binding SelectedOpenedIndex}"
+                    BorderThickness="0"
+                    Background="#131313">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel IsItemsHost="True"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Label Content="{Binding Symbol.Symbol}" Foreground="#e5e5e5"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <lvc:CartesianChart
+                    Grid.Row="1"
+                    XAxes="{Binding XAxis}"
+                    YAxes="{Binding YAxis}"
+                    Series="{Binding CurrentSeries}"
+                    BorderThickness="1pt"
+                    Foreground="#e5e5e5"
+                    DrawMargin="{Binding ChartMargin}"/>
+            </Grid>
+        </Grid>
+        <Grid.DataContext>
+            <viewModel:ExchangeSelectionViewModel/>
+        </Grid.DataContext>
     </Grid>
 </Window>
