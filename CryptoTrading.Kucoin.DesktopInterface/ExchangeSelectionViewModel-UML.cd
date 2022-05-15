@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="CryptoTrading.Kucoin.DesktopInterface.ViewModel.ExchangeSelectionViewModel">
+    <Position X="3" Y="0.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>jAUQBmAjACFQVABBAgRggAEAAoAQAAAAABASBJAQEqA=</HashCode>
+      <FileName>ViewModel\ExchangeSelectionViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CryptoTrading.Kucoin.DesktopInterface.ViewModel.DelayedInitialisationViewModel">
+    <Position X="7" Y="0.5" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAA=</HashCode>
+      <FileName>ViewModel\DelayedInitialisationViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CryptoTrading.Kucoin.DesktopInterface.ViewModel.BaseViewModel">
+    <Position X="11.25" Y="0.5" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAACAAAAABIAAAAAAAgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ViewModel\BaseViewModel.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Orientation="Bottom" Position="2.8" Collapsed="true" />
+  </Class>
+  <Class Name="CryptoTrading.Kucoin.DesktopInterface.View.MainWindow">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>View\MainWindow.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="System.ComponentModel.INotifyPropertyChanged">
+    <Position X="16.5" Y="0.75" Width="1.5" />
+    <TypeIdentifier />
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
