@@ -12,7 +12,7 @@ public partial record ExchangeSymbol
 
         public ExchangeSymbolFactory(string rawExchangeSymbol)
         {
-            m_RawExchangeSymbol = rawExchangeSymbol;
+            m_RawExchangeSymbol = rawExchangeSymbol ?? throw new ArgumentNullException(nameof(rawExchangeSymbol));
             if (!ExchangeSymbolRegex.IsMatch(m_RawExchangeSymbol))
             {
                 throw new ArgumentException(
